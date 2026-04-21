@@ -1,0 +1,423 @@
+// BusKaro Database Schema
+// 
+// This is the Prisma schema file for the BusKaro bus tracking system.
+// After making changes, run:
+//   npx prisma migrate dev --name <migration_name>
+//   npx prisma generate
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - Base authentication entity
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  phone           String?   @unique
+  passwordHash    String    @map("password_hash")
+  role            UserRole
+  status          UserStatus @default(PENDING_VERIFICATION)
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  phoneVerified   Boolean   @default(false) @map("phone_verified")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  lastLoginAt     DateTime? @map("last_login_at")
+
+  // Relations
+  student         Student?
+  driver          Driver?
+  admin           Admin?
+  notifications   Notification[]
+  sessions        Session[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  STUDENT
+  DRIVER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+// Student profile
+model Student {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  studentId       String    @unique @map("student_id") // College ID
+  name            String
+  department      String
+  semester        Int
+  rollNumber      String    @map("roll_number")
+  busId           String?   @map("bus_id") @db.Uuid
+  routeId         String?   @map("route_id") @db.Uuid
+  pickupPointId   String?   @map("pickup_point_id") @db.Uuid
+  parentName      String?   @map("parent_name")
+  parentPhone     String?   @map("parent_phone")
+  address         String
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bus             Bus?      @relation(fields: [busId], references: [id])
+  route           Route?    @relation(fields: [routeId], references: [id])
+  pickupPoint     PickupPoint? @relation(fields: [pickupPointId], references: [id])
+  attendances     Attendance[]
+  payments        Payment[]
+
+  @@map("students")
+}
+
+// Driver profile
+model Driver {
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String    @unique @map("user_id") @db.Uuid
+  name              String
+  licenseNumber     String    @map("license_number")
+  licenseExpiry     DateTime  @map("license_expiry")
+  emergencyContact  String?   @map("emergency_contact")
+  isOnDuty          Boolean   @default(false) @map("is_on_duty")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bus       Bus?    @relation("AssignedBus")
+
+  @@map("drivers")
+}
+
+// Admin profile
+model Admin {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  name        String
+  department  String?
+  permissions AdminPermission[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+enum AdminPermission {
+  MANAGE_USERS
+  MANAGE_BUSES
+  MANAGE_ROUTES
+  MANAGE_PAYMENTS
+  VIEW_ANALYTICS
+  MANAGE_NOTIFICATIONS
+  SYSTEM_SETTINGS
+}
+
+// Bus fleet
+model Bus {
+  id                  String      @id @default(uuid()) @db.Uuid
+  registrationNumber  String      @unique @map("registration_number")
+  model               String
+  manufacturer        String
+  year                Int
+  type                BusType     @default(STANDARD)
+  capacity            Int
+  status              BusStatus   @default(ACTIVE)
+  currentDriverId     String?     @unique @map("current_driver_id") @db.Uuid
+  currentRouteId      String?     @map("current_route_id") @db.Uuid
+  gpsDeviceId         String?     @map("gps_device_id")
+  fuelType            String      @map("fuel_type")
+  insuranceExpiry     DateTime    @map("insurance_expiry")
+  permitExpiry        DateTime    @map("permit_expiry")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  driver        Driver?       @relation("AssignedBus", fields: [currentDriverId], references: [id])
+  route         Route?        @relation(fields: [currentRouteId], references: [id])
+  students      Student[]
+  attendances   Attendance[]
+  locations     BusLocation[]
+
+  @@map("buses")
+}
+
+enum BusType {
+  STANDARD
+  AC
+  LUXURY
+  MINI
+}
+
+enum BusStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+// Bus location history
+model BusLocation {
+  id          String    @id @default(uuid()) @db.Uuid
+  busId       String    @map("bus_id") @db.Uuid
+  latitude    Float
+  longitude   Float
+  accuracy    Float?
+  heading     Float?
+  speed       Float?
+  timestamp   DateTime  @default(now())
+  recordedAt  DateTime  @default(now()) @map("recorded_at")
+
+  // Relations
+  bus  Bus  @relation(fields: [busId], references: [id], onDelete: Cascade)
+
+  @@index([busId, timestamp])
+  @@map("bus_locations")
+}
+
+// Routes
+model Route {
+  id                  String    @id @default(uuid()) @db.Uuid
+  name                String
+  routeNumber         String    @unique @map("route_number")
+  description         String?
+  startLocation       String    @map("start_location")
+  endLocation         String    @map("end_location")
+  totalDistance       Float     @map("total_distance") // km
+  estimatedDuration   Int       @map("estimated_duration") // minutes
+  status              RouteStatus @default(ACTIVE)
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  buses           Bus[]
+  pickupPoints    PickupPoint[]
+  students        Student[]
+  attendances     Attendance[]
+  feeStructures   BusFeeStructure[]
+
+  @@map("routes")
+}
+
+enum RouteStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_REVIEW
+}
+
+// Pickup points
+model PickupPoint {
+  id                  String    @id @default(uuid()) @db.Uuid
+  routeId             String    @map("route_id") @db.Uuid
+  name                String
+  address             String
+  latitude            Float
+  longitude           Float
+  landmark            String?
+  arrivalTime         String    @map("arrival_time") // HH:mm format
+  sequenceOrder       Int       @map("sequence_order")
+  estimatedWaitMinutes Int      @default(2) @map("estimated_wait_minutes")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  route         Route       @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  students      Student[]
+  pins          PickupPin[]
+  attendances   Attendance[]
+
+  @@index([routeId, sequenceOrder])
+  @@map("pickup_points")
+}
+
+// Pickup PINs for attendance verification
+model PickupPin {
+  id              String    @id @default(uuid()) @db.Uuid
+  pickupPointId   String    @map("pickup_point_id") @db.Uuid
+  code            String
+  isActive        Boolean   @default(true) @map("is_active")
+  expiresAt       DateTime? @map("expires_at")
+  createdBy       String    @map("created_by") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  pickupPoint  PickupPoint  @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@map("pickup_pins")
+}
+
+// Attendance records
+model Attendance {
+  id                    String            @id @default(uuid()) @db.Uuid
+  studentId             String            @map("student_id") @db.Uuid
+  busId                 String            @map("bus_id") @db.Uuid
+  routeId               String            @map("route_id") @db.Uuid
+  pickupPointId         String?           @map("pickup_point_id") @db.Uuid
+  date                  DateTime          @db.Date
+  status                AttendanceStatus
+  boardingTime          DateTime?         @map("boarding_time")
+  alightingTime         DateTime?         @map("alighting_time")
+  verifiedByPin         Boolean           @default(false) @map("verified_by_pin")
+  verifiedByNfc         Boolean           @default(false) @map("verified_by_nfc")
+  verifiedByQr          Boolean           @default(false) @map("verified_by_qr")
+  locationLat           Float?            @map("location_lat")
+  locationLng           Float?            @map("location_lng")
+  locationAccuracy      Float?            @map("location_accuracy")
+  notes                 String?
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  bus           Bus           @relation(fields: [busId], references: [id])
+  route         Route         @relation(fields: [routeId], references: [id])
+  pickupPoint   PickupPoint?  @relation(fields: [pickupPointId], references: [id])
+
+  @@unique([studentId, date])
+  @@index([busId, date])
+  @@index([routeId, date])
+  @@map("attendances")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+// Payments
+model Payment {
+  id              String          @id @default(uuid()) @db.Uuid
+  studentId       String          @map("student_id") @db.Uuid
+  amount          Float
+  currency        String          @default("INR")
+  status          PaymentStatus   @default(PENDING)
+  method          PaymentMethod?
+  transactionId   String?         @map("transaction_id")
+  description     String
+  metadata        Json?
+  paidAt          DateTime?       @map("paid_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CARD
+  NET_BANKING
+  WALLET
+}
+
+// Bus fee structure
+model BusFeeStructure {
+  id              String    @id @default(uuid()) @db.Uuid
+  routeId         String    @map("route_id") @db.Uuid
+  amount          Float
+  currency        String    @default("INR")
+  academicYear    String    @map("academic_year")
+  semester        Int
+  description     String?
+  dueDate         DateTime  @map("due_date")
+  lateFeePerDay   Float     @default(0) @map("late_fee_per_day")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  route  Route  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@map("bus_fee_structures")
+}
+
+// Notifications
+model Notification {
+  id            String              @id @default(uuid()) @db.Uuid
+  userId        String              @map("user_id") @db.Uuid
+  type          NotificationType
+  title         String
+  body          String
+  data          Json?
+  channel       NotificationChannel
+  status        NotificationStatus  @default(PENDING)
+  sentAt        DateTime?           @map("sent_at")
+  deliveredAt   DateTime?           @map("delivered_at")
+  readAt        DateTime?           @map("read_at")
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  BUS_ARRIVING
+  BUS_DELAYED
+  BUS_CANCELLED
+  ROUTE_CHANGE
+  ATTENDANCE_MARKED
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  EMERGENCY_ALERT
+  GENERAL_ANNOUNCEMENT
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  EMAIL
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// Sessions for tracking active logins
+model Session {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  token       String    @unique
+  ipAddress   String?   @map("ip_address")
+  userAgent   String?   @map("user_agent")
+  expiresAt   DateTime  @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastUsedAt  DateTime  @default(now()) @map("last_used_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
