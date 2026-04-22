@@ -34,6 +34,7 @@ model User {
   admin           Admin?
   notifications   Notification[]
   sessions        Session[]
+  auditLogs       AuditLog[]
 
   @@map("users")
 }
@@ -76,6 +77,7 @@ model Student {
   pickupPoint     PickupPoint? @relation(fields: [pickupPointId], references: [id])
   attendances     Attendance[]
   payments        Payment[]
+  pickupPins      PickupPin[]
 
   @@map("students")
 }
@@ -144,12 +146,17 @@ model Bus {
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
 
+  // Current location (stored in Redis for real-time, here for reference)
+  currentLat    Float?        @map("current_lat")
+  currentLng    Float?        @map("current_lng")
+  lastLocationAt DateTime?     @map("last_location_at")
+
   // Relations
   driver        Driver?       @relation("AssignedBus", fields: [currentDriverId], references: [id])
   route         Route?        @relation(fields: [currentRouteId], references: [id])
   students      Student[]
   attendances   Attendance[]
-  locations     BusLocation[]
+  locations     LocationHistory[]
 
   @@map("buses")
 }
@@ -169,25 +176,32 @@ enum BusStatus {
 }
 
 // Bus location history
-model BusLocation {
+model LocationHistory {
   id          String    @id @default(uuid()) @db.Uuid
   busId       String    @map("bus_id") @db.Uuid
+  
+  // Location coordinates
   latitude    Float
   longitude   Float
   accuracy    Float?
   heading     Float?
   speed       Float?
-  timestamp   DateTime  @default(now())
+  altitude    Float?
+  
+  // Metadata
   recordedAt  DateTime  @default(now()) @map("recorded_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   // Relations
   bus  Bus  @relation(fields: [busId], references: [id], onDelete: Cascade)
 
-  @@index([busId, timestamp])
-  @@map("bus_locations")
+  // Indexes for fast queries
+  @@index([busId, recordedAt])
+  @@index([latitude, longitude])
+  @@map("location_history")
 }
 
-// Routes
+// Routes with GeoJSON path support
 model Route {
   id                  String    @id @default(uuid()) @db.Uuid
   name                String
@@ -195,6 +209,10 @@ model Route {
   description         String?
   startLocation       String    @map("start_location")
   endLocation         String    @map("end_location")
+  
+  // GeoJSON path for the route
+  pathGeoJson         Json?     @map("path_geojson")
+  
   totalDistance       Float     @map("total_distance") // km
   estimatedDuration   Int       @map("estimated_duration") // minutes
   status              RouteStatus @default(ACTIVE)
@@ -242,21 +260,41 @@ model PickupPoint {
   @@map("pickup_points")
 }
 
-// Pickup PINs for attendance verification
+// Pickup PINs for attendance verification with geolocation
 model PickupPin {
   id              String    @id @default(uuid()) @db.Uuid
   pickupPointId   String    @map("pickup_point_id") @db.Uuid
-  code            String
-  isActive        Boolean   @default(true) @map("is_active")
+  studentId       String?   @map("student_id") @db.Uuid  // Optional: specific student assignment
+  code            String    @unique
+  status          PickupPinStatus @default(ACTIVE)
+  
+  // Geolocation
+  latitude        Float
+  longitude       Float
+  accuracy        Float?    // GPS accuracy in meters
+  
+  // Validity
+  validFrom       DateTime  @default(now()) @map("valid_from")
   expiresAt       DateTime? @map("expires_at")
+  
   createdBy       String    @map("created_by") @db.Uuid
   createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
   pickupPoint  PickupPoint  @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
+  student      Student?     @relation(fields: [studentId], references: [id])
 
   @@index([code])
+  @@index([pickupPointId, status])
   @@map("pickup_pins")
+}
+
+enum PickupPinStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  REVOKED
 }
 
 // Attendance records
@@ -299,7 +337,7 @@ enum AttendanceStatus {
   EXCUSED
 }
 
-// Payments
+// Payments with Razorpay integration
 model Payment {
   id              String          @id @default(uuid()) @db.Uuid
   studentId       String          @map("student_id") @db.Uuid
@@ -307,16 +345,37 @@ model Payment {
   currency        String          @default("INR")
   status          PaymentStatus   @default(PENDING)
   method          PaymentMethod?
+  
+  // Razorpay fields
+  razorpayOrderId     String?     @unique @map("razorpay_order_id")
+  razorpayPaymentId   String?     @unique @map("razorpay_payment_id")
+  razorpaySignature   String?     @map("razorpay_signature")
+  
+  // Fallback/generic transaction ID
   transactionId   String?         @map("transaction_id")
+  
+  // Payment details
   description     String
+  feeStructureId  String?         @map("fee_structure_id") @db.Uuid
   metadata        Json?
-  paidAt          DateTime?       @map("paid_at")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+  
+  // Receipt and invoice
+  receiptNumber   String?           @map("receipt_number")
+  invoiceUrl      String?           @map("invoice_url")
+  
+  // Timestamps
+  paidAt          DateTime?         @map("paid_at")
+  failedAt        DateTime?         @map("failed_at")
+  refundedAt      DateTime?         @map("refunded_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
 
   // Relations
   student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
+  @@index([studentId, status])
+  @@index([razorpayOrderId])
+  @@index([razorpayPaymentId])
   @@map("payments")
 }
 
@@ -420,4 +479,60 @@ model Session {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+}
+
+// Audit Log for tracking all system actions
+model AuditLog {
+  id          String    @id @default(uuid()) @db.Uuid
+  
+  // Action details
+  action      AuditAction
+  entityType  String      @map("entity_type")  // e.g., "Bus", "Student", "Payment"
+  entityId    String?     @map("entity_id") @db.Uuid
+  
+  // User who performed the action
+  userId      String?     @map("user_id") @db.Uuid
+  userRole    UserRole?   @map("user_role")
+  
+  // Change tracking
+  oldValues   Json?       @map("old_values")
+  newValues   Json?       @map("new_values")
+  metadata    Json?
+  
+  // Request context
+  ipAddress   String?     @map("ip_address")
+  userAgent   String?     @map("user_agent")
+  requestId   String?     @map("request_id")
+  
+  // Geolocation (if applicable)
+  latitude    Float?
+  longitude   Float?
+  
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  VIEW
+  EXPORT
+  IMPORT
+  PAYMENT_INITIATED
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+  LOCATION_UPDATED
+  ATTENDANCE_MARKED
+  EMERGENCY_TRIGGERED
 }
