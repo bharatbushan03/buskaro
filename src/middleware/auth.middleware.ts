@@ -17,6 +17,7 @@ export interface JwtPayload {
   email: string;
   role: UserRole;
   type: 'access' | 'refresh';
+  sub?: string;  // JWT subject claim (used for refresh token rotation)
   iat: number;
   exp: number;
 }
@@ -57,10 +58,17 @@ export const generateAccessToken = (userId: string, email: string, role: UserRol
  */
 export const generateRefreshToken = (userId: string, email: string, role: UserRole): string => {
   return jwt.sign(
-    { userId, email, role, type: 'refresh' },
+    { sub: userId, userId, email, role, type: 'refresh' },
     config.jwtRefreshSecret,
     { expiresIn: config.jwtRefreshExpiration }
   );
+};
+
+/**
+ * Verify refresh token and extract payload
+ */
+export const verifyRefreshToken = (token: string): JwtPayload => {
+  return jwt.verify(token, config.jwtRefreshSecret) as JwtPayload;
 };
 
 /**

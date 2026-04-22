@@ -5,9 +5,15 @@
  * Orchestrates between repository, JWT handling, and external services.
  */
 
-import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { AuthRepository, authRepository } from './auth.repository';
-import { generateAccessToken, generateRefreshToken } from '../../middleware/auth.middleware';
+import { validatePassword, hashPassword, comparePassword } from '../../utils/password.utils';
+import { 
+  generateAccessToken, 
+  generateRefreshToken,
+  verifyRefreshToken 
+} from '../../middleware/auth.middleware';
 import { redis, RedisKeys, RedisTTL } from '../../config/redis.config';
 import { config } from '../../config/app.config';
 import { logger } from '../../utils/logger';
@@ -46,8 +52,14 @@ export class AuthService {
       }
     }
 
+    // Validate password strength
+    const passwordValidation = validatePassword(data.password);
+    if (!passwordValidation.isValid) {
+      throw new ValidationError(passwordValidation.errors.join(', '));
+    }
+
     // Hash password
-    const passwordHash = await bcrypt.hash(data.password, config.bcryptRounds);
+    const passwordHash = await hashPassword(data.password);
 
     // Create user
     const user = await this.repository.create({
@@ -93,7 +105,7 @@ export class AuthService {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+    const isPasswordValid = await comparePassword(credentials.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new AuthenticationError('Invalid credentials');
     }
@@ -119,13 +131,72 @@ export class AuthService {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token with rotation
+   * Implements refresh token rotation for enhanced security
    */
   async refreshToken(refreshToken: string): Promise<AuthTokens> {
-    // TODO: Implement refresh token validation and rotation
-    // This will be completed with full JWT logic
-    
-    throw new AuthenticationError('Refresh token implementation pending');
+    try {
+      // Verify the refresh token
+      const payload = verifyRefreshToken(refreshToken);
+      
+      if (!payload || !payload.sub) {
+        throw new AuthenticationError('Invalid refresh token');
+      }
+
+      const tokenId = this.extractTokenId(refreshToken);
+      
+      // Check if token exists in Redis (not revoked)
+      const storedToken = await redis.get(RedisKeys.refreshToken(tokenId));
+      
+      if (!storedToken) {
+        // Token was revoked or expired - potential replay attack
+        logger.warn(`Attempt to use revoked refresh token: ${tokenId}`);
+        
+        // Revoke all tokens for this user as security measure
+        await this.logoutAllDevices(payload.sub);
+        
+        throw new AuthenticationError('Token has been revoked. Please login again.');
+      }
+
+      // Get user to ensure they still exist and are active
+      const user = await this.repository.findById(payload.sub);
+      
+      if (!user) {
+        throw new AuthenticationError('User not found');
+      }
+
+      if (user.status !== 'ACTIVE') {
+        throw new AuthenticationError('Account is not active');
+      }
+
+      // Revoke the old refresh token (rotation)
+      await redis.del(RedisKeys.refreshToken(tokenId));
+      
+      // Generate new token pair
+      const tokens = this.generateTokens(user.id, user.email, user.role);
+      
+      // Store new refresh token
+      await this.storeRefreshToken(user.id, tokens.refreshToken);
+      
+      logger.info(`Token refreshed for user: ${user.email}`);
+      
+      return tokens;
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        throw error;
+      }
+      
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new AuthenticationError('Refresh token has expired');
+      }
+      
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new AuthenticationError('Invalid refresh token');
+      }
+      
+      logger.error('Refresh token error:', error);
+      throw new AuthenticationError('Failed to refresh token');
+    }
   }
 
   /**
@@ -136,22 +207,28 @@ export class AuthService {
     const tokenId = this.extractTokenId(refreshToken);
     await redis.del(RedisKeys.refreshToken(tokenId));
     
-    auditLog('USER_LOGOUT', userId, {});
-    logger.info(`User logged out: ${userId}`);
   }
 
   /**
-   * Logout from all devices
+   * Logout user from all devices
    */
   async logoutAllDevices(userId: string): Promise<void> {
-    // Clear all refresh tokens for user
-    const pattern = `refresh:*:${userId}`;
+    // Revoke all refresh tokens for this user
+    const pattern = `${RedisKeys.refreshToken('')}*`;
     const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-      await redis.del(...keys);
+    
+    // Delete all matching keys
+    for (const key of keys) {
+      const tokenData = await redis.get(key);
+      if (tokenData) {
+        const data = JSON.parse(tokenData);
+        if (data.userId === userId) {
+          await redis.del(key);
+        }
+      }
     }
-
-    auditLog('USER_LOGOUT_ALL', userId, {});
+    
+    logger.info(`Logged out user from all devices: ${userId}`);
     logger.info(`User logged out from all devices: ${userId}`);
   }
 

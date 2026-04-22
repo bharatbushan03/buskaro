@@ -6,9 +6,15 @@
  */
 
 import { Router } from 'express';
+import { body } from 'express-validator';
 import { authController } from './auth.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { validate, commonValidations } from '../../middleware/validate.middleware';
+import { 
+  loginRateLimit, 
+  registerRateLimit, 
+  refreshRateLimit 
+} from '../../middleware/rate-limit.middleware';
 
 const router = Router();
 
@@ -19,6 +25,7 @@ const router = Router();
  */
 router.post(
   '/register',
+  registerRateLimit,
   validate([
     commonValidations.email,
     commonValidations.password,
@@ -34,6 +41,7 @@ router.post(
  */
 router.post(
   '/login',
+  loginRateLimit,
   validate([
     commonValidations.email,
     body('password').notEmpty().withMessage('Password is required'),
@@ -48,6 +56,7 @@ router.post(
  */
 router.post(
   '/refresh',
+  refreshRateLimit,
   validate([
     body('refreshToken').notEmpty().withMessage('Refresh token is required'),
   ]),
@@ -106,8 +115,5 @@ router.get(
   authenticate,
   authController.getMe
 );
-
-// Import body validation
-import { body } from 'express-validator';
 
 export { router as authRoutes };
