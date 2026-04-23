@@ -16,6 +16,9 @@ declare module 'socket.io' {
       id: string;
       email: string;
       role: UserRole;
+      driverId?: string;
+      busId?: string;
+      studentId?: string;
     };
   }
 }
