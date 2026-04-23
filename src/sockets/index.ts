@@ -25,6 +25,7 @@ import { registerBusHandlers } from './bus.socket';
 import { registerNotificationHandlers } from './notification.socket';
 import { registerDriverHandlers } from './handlers/driver.handler';
 import { registerStudentHandlers } from './handlers/student.handler';
+import { registerPickupHandlers } from './handlers/pickup.handler';
 import { SocketRooms } from './events';
 
 let io: SocketServer;
@@ -71,6 +72,7 @@ export const initializeSockets = (httpServer: HttpServer): SocketServer => {
     registerNotificationHandlers(io, socket);
     registerDriverHandlers(io, socket);
     registerStudentHandlers(io, socket);
+    registerPickupHandlers(io, socket);
 
     // Handle reconnection - restore previous rooms
     socket.on('reconnect', (attemptNumber) => {
