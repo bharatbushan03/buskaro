@@ -16,25 +16,25 @@ datasource db {
 
 // User model - Base authentication entity
 model User {
-  id              String    @id @default(uuid()) @db.Uuid
-  email           String    @unique
-  phone           String?   @unique
-  passwordHash    String    @map("password_hash")
-  role            UserRole
-  status          UserStatus @default(PENDING_VERIFICATION)
-  emailVerified   Boolean   @default(false) @map("email_verified")
-  phoneVerified   Boolean   @default(false) @map("phone_verified")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  lastLoginAt     DateTime? @map("last_login_at")
+  id            String     @id @default(uuid()) @db.Uuid
+  email         String     @unique
+  phone         String?    @unique
+  passwordHash  String     @map("password_hash")
+  role          UserRole
+  status        UserStatus @default(PENDING_VERIFICATION)
+  emailVerified Boolean    @default(false) @map("email_verified")
+  phoneVerified Boolean    @default(false) @map("phone_verified")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  lastLoginAt   DateTime?  @map("last_login_at")
 
   // Relations
-  student         Student?
-  driver          Driver?
-  admin           Admin?
-  notifications   Notification[]
-  sessions        Session[]
-  auditLogs       AuditLog[]
+  student       Student?
+  driver        Driver?
+  admin         Admin?
+  notifications Notification[]
+  sessions      Session[]
+  auditLogs     AuditLog[]
 
   @@map("users")
 }
@@ -54,65 +54,67 @@ enum UserStatus {
 
 // Student profile
 model Student {
-  id              String    @id @default(uuid()) @db.Uuid
-  userId          String    @unique @map("user_id") @db.Uuid
-  studentId       String    @unique @map("student_id") // College ID
-  name            String
-  department      String
-  semester        Int
-  rollNumber      String    @map("roll_number")
-  busId           String?   @map("bus_id") @db.Uuid
-  routeId         String?   @map("route_id") @db.Uuid
-  pickupPointId   String?   @map("pickup_point_id") @db.Uuid
-  parentName      String?   @map("parent_name")
-  parentPhone     String?   @map("parent_phone")
-  address         String
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @map("user_id") @db.Uuid
+  studentId     String   @unique @map("student_id") // College ID
+  name          String
+  department    String
+  semester      Int
+  rollNumber    String   @map("roll_number")
+  busId         String?  @map("bus_id") @db.Uuid
+  routeId       String?  @map("route_id") @db.Uuid
+  pickupPointId String?  @map("pickup_point_id") @db.Uuid
+  parentName    String?  @map("parent_name")
+  parentPhone   String?  @map("parent_phone")
+  address       String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bus             Bus?      @relation(fields: [busId], references: [id])
-  route           Route?    @relation(fields: [routeId], references: [id])
-  pickupPoint     PickupPoint? @relation(fields: [pickupPointId], references: [id])
-  attendances     Attendance[]
-  payments        Payment[]
-  pickupPins      PickupPin[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bus            Bus?            @relation(fields: [busId], references: [id])
+  route          Route?          @relation(fields: [routeId], references: [id])
+  pickupPoint    PickupPoint?    @relation(fields: [pickupPointId], references: [id])
+  attendances    Attendance[]
+  payments       Payment[]
+  pickupPins     PickupPin[]
+  pickupRequests PickupRequest[]
 
   @@map("students")
 }
 
 // Driver profile
 model Driver {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @unique @map("user_id") @db.Uuid
-  name              String
-  licenseNumber     String    @map("license_number")
-  licenseExpiry     DateTime  @map("license_expiry")
-  emergencyContact  String?   @map("emergency_contact")
-  isOnDuty          Boolean   @default(false) @map("is_on_duty")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  name             String
+  licenseNumber    String   @map("license_number")
+  licenseExpiry    DateTime @map("license_expiry")
+  emergencyContact String?  @map("emergency_contact")
+  isOnDuty         Boolean  @default(false) @map("is_on_duty")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bus       Bus?    @relation("AssignedBus")
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bus            Bus?            @relation("AssignedBus")
+  pickupRequests PickupRequest[]
 
   @@map("drivers")
 }
 
 // Admin profile
 model Admin {
-  id          String    @id @default(uuid()) @db.Uuid
-  userId      String    @unique @map("user_id") @db.Uuid
+  id          String            @id @default(uuid()) @db.Uuid
+  userId      String            @unique @map("user_id") @db.Uuid
   name        String
   department  String?
   permissions AdminPermission[]
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
 
   // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("admins")
 }
@@ -129,34 +131,35 @@ enum AdminPermission {
 
 // Bus fleet
 model Bus {
-  id                  String      @id @default(uuid()) @db.Uuid
-  registrationNumber  String      @unique @map("registration_number")
-  model               String
-  manufacturer        String
-  year                Int
-  type                BusType     @default(STANDARD)
-  capacity            Int
-  status              BusStatus   @default(ACTIVE)
-  currentDriverId     String?     @unique @map("current_driver_id") @db.Uuid
-  currentRouteId      String?     @map("current_route_id") @db.Uuid
-  gpsDeviceId         String?     @map("gps_device_id")
-  fuelType            String      @map("fuel_type")
-  insuranceExpiry     DateTime    @map("insurance_expiry")
-  permitExpiry        DateTime    @map("permit_expiry")
-  createdAt           DateTime    @default(now()) @map("created_at")
-  updatedAt           DateTime    @updatedAt @map("updated_at")
+  id                 String    @id @default(uuid()) @db.Uuid
+  registrationNumber String    @unique @map("registration_number")
+  model              String
+  manufacturer       String
+  year               Int
+  type               BusType   @default(STANDARD)
+  capacity           Int
+  status             BusStatus @default(ACTIVE)
+  currentDriverId    String?   @unique @map("current_driver_id") @db.Uuid
+  currentRouteId     String?   @map("current_route_id") @db.Uuid
+  gpsDeviceId        String?   @map("gps_device_id")
+  fuelType           String    @map("fuel_type")
+  insuranceExpiry    DateTime  @map("insurance_expiry")
+  permitExpiry       DateTime  @map("permit_expiry")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   // Current location (stored in Redis for real-time, here for reference)
-  currentLat    Float?        @map("current_lat")
-  currentLng    Float?        @map("current_lng")
-  lastLocationAt DateTime?     @map("last_location_at")
+  currentLat     Float?    @map("current_lat")
+  currentLng     Float?    @map("current_lng")
+  lastLocationAt DateTime? @map("last_location_at")
 
   // Relations
-  driver        Driver?       @relation("AssignedBus", fields: [currentDriverId], references: [id])
-  route         Route?        @relation(fields: [currentRouteId], references: [id])
-  students      Student[]
-  attendances   Attendance[]
-  locations     LocationHistory[]
+  driver         Driver?           @relation("AssignedBus", fields: [currentDriverId], references: [id])
+  route          Route?            @relation(fields: [currentRouteId], references: [id])
+  students       Student[]
+  attendances    Attendance[]
+  locations      LocationHistory[]
+  pickupRequests PickupRequest[]
 
   @@map("buses")
 }
@@ -177,23 +180,23 @@ enum BusStatus {
 
 // Bus location history
 model LocationHistory {
-  id          String    @id @default(uuid()) @db.Uuid
-  busId       String    @map("bus_id") @db.Uuid
-  
+  id    String @id @default(uuid()) @db.Uuid
+  busId String @map("bus_id") @db.Uuid
+
   // Location coordinates
-  latitude    Float
-  longitude   Float
-  accuracy    Float?
-  heading     Float?
-  speed       Float?
-  altitude    Float?
-  
+  latitude  Float
+  longitude Float
+  accuracy  Float?
+  heading   Float?
+  speed     Float?
+  altitude  Float?
+
   // Metadata
-  recordedAt  DateTime  @default(now()) @map("recorded_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  recordedAt DateTime @default(now()) @map("recorded_at")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   // Relations
-  bus  Bus  @relation(fields: [busId], references: [id], onDelete: Cascade)
+  bus Bus @relation(fields: [busId], references: [id], onDelete: Cascade)
 
   // Indexes for fast queries
   @@index([busId, recordedAt])
@@ -203,28 +206,28 @@ model LocationHistory {
 
 // Routes with GeoJSON path support
 model Route {
-  id                  String    @id @default(uuid()) @db.Uuid
-  name                String
-  routeNumber         String    @unique @map("route_number")
-  description         String?
-  startLocation       String    @map("start_location")
-  endLocation         String    @map("end_location")
-  
+  id            String  @id @default(uuid()) @db.Uuid
+  name          String
+  routeNumber   String  @unique @map("route_number")
+  description   String?
+  startLocation String  @map("start_location")
+  endLocation   String  @map("end_location")
+
   // GeoJSON path for the route
-  pathGeoJson         Json?     @map("path_geojson")
-  
-  totalDistance       Float     @map("total_distance") // km
-  estimatedDuration   Int       @map("estimated_duration") // minutes
-  status              RouteStatus @default(ACTIVE)
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
+  pathGeoJson Json? @map("path_geojson")
+
+  totalDistance     Float       @map("total_distance") // km
+  estimatedDuration Int         @map("estimated_duration") // minutes
+  status            RouteStatus @default(ACTIVE)
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  buses           Bus[]
-  pickupPoints    PickupPoint[]
-  students        Student[]
-  attendances     Attendance[]
-  feeStructures   BusFeeStructure[]
+  buses         Bus[]
+  pickupPoints  PickupPoint[]
+  students      Student[]
+  attendances   Attendance[]
+  feeStructures BusFeeStructure[]
 
   @@map("routes")
 }
@@ -237,24 +240,24 @@ enum RouteStatus {
 
 // Pickup points
 model PickupPoint {
-  id                  String    @id @default(uuid()) @db.Uuid
-  routeId             String    @map("route_id") @db.Uuid
-  name                String
-  address             String
-  latitude            Float
-  longitude           Float
-  landmark            String?
-  arrivalTime         String    @map("arrival_time") // HH:mm format
-  sequenceOrder       Int       @map("sequence_order")
+  id                   String   @id @default(uuid()) @db.Uuid
+  routeId              String   @map("route_id") @db.Uuid
+  name                 String
+  address              String
+  latitude             Float
+  longitude            Float
+  landmark             String?
+  arrivalTime          String   @map("arrival_time") // HH:mm format
+  sequenceOrder        Int      @map("sequence_order")
   estimatedWaitMinutes Int      @default(2) @map("estimated_wait_minutes")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
   // Relations
-  route         Route       @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  students      Student[]
-  pins          PickupPin[]
-  attendances   Attendance[]
+  route       Route        @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  students    Student[]
+  pins        PickupPin[]
+  attendances Attendance[]
 
   @@index([routeId, sequenceOrder])
   @@map("pickup_points")
@@ -262,28 +265,28 @@ model PickupPoint {
 
 // Pickup PINs for attendance verification with geolocation
 model PickupPin {
-  id              String    @id @default(uuid()) @db.Uuid
-  pickupPointId   String    @map("pickup_point_id") @db.Uuid
-  studentId       String?   @map("student_id") @db.Uuid  // Optional: specific student assignment
-  code            String    @unique
-  status          PickupPinStatus @default(ACTIVE)
-  
+  id            String          @id @default(uuid()) @db.Uuid
+  pickupPointId String          @map("pickup_point_id") @db.Uuid
+  studentId     String?         @map("student_id") @db.Uuid // Optional: specific student assignment
+  code          String          @unique
+  status        PickupPinStatus @default(ACTIVE)
+
   // Geolocation
-  latitude        Float
-  longitude       Float
-  accuracy        Float?    // GPS accuracy in meters
-  
+  latitude  Float
+  longitude Float
+  accuracy  Float? // GPS accuracy in meters
+
   // Validity
-  validFrom       DateTime  @default(now()) @map("valid_from")
-  expiresAt       DateTime? @map("expires_at")
-  
-  createdBy       String    @map("created_by") @db.Uuid
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  validFrom DateTime  @default(now()) @map("valid_from")
+  expiresAt DateTime? @map("expires_at")
+
+  createdBy String   @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  pickupPoint  PickupPoint  @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
-  student      Student?     @relation(fields: [studentId], references: [id])
+  pickupPoint PickupPoint @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
+  student     Student?    @relation(fields: [studentId], references: [id])
 
   @@index([code])
   @@index([pickupPointId, status])
@@ -299,38 +302,38 @@ enum PickupPinStatus {
 
 // Dynamic pickup requests (Uber-style)
 model PickupRequest {
-  id              String    @id @default(uuid()) @db.Uuid
-  studentId       String    @map("student_id") @db.Uuid
-  
+  id        String @id @default(uuid()) @db.Uuid
+  studentId String @map("student_id") @db.Uuid
+
   // Location (Geo point)
-  latitude        Float
-  longitude       Float
-  address         String?   // Optional address description
-  accuracy        Float?    // GPS accuracy in meters
-  
+  latitude  Float
+  longitude Float
+  address   String? // Optional address description
+  accuracy  Float? // GPS accuracy in meters
+
   // Status tracking
-  status          PickupRequestStatus @default(PENDING)
-  
+  status PickupRequestStatus @default(PENDING)
+
   // Assignment
-  driverId        String?   @map("driver_id") @db.Uuid
-  busId           String?   @map("bus_id") @db.Uuid
-  
+  driverId String? @map("driver_id") @db.Uuid
+  busId    String? @map("bus_id") @db.Uuid
+
   // Timing
-  requestedAt     DateTime  @default(now()) @map("requested_at")
-  expiresAt       DateTime  @map("expires_at") // 30 min TTL
-  completedAt     DateTime? @map("completed_at")
-  
+  requestedAt DateTime  @default(now()) @map("requested_at")
+  expiresAt   DateTime  @map("expires_at") // 30 min TTL
+  completedAt DateTime? @map("completed_at")
+
   // Metadata
-  notes           String?   // Student notes for driver
-  priority        Int       @default(0) // For future prioritization
-  
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  notes    String? // Student notes for driver
+  priority Int     @default(0) // For future prioritization
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  driver          Driver?   @relation(fields: [driverId], references: [id])
-  bus             Bus?      @relation(fields: [busId], references: [id])
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  driver  Driver? @relation(fields: [driverId], references: [id])
+  bus     Bus?    @relation(fields: [busId], references: [id])
 
   // Indexes for geo queries
   @@index([studentId, status])
@@ -348,32 +351,77 @@ enum PickupRequestStatus {
   CANCELLED
 }
 
-// Attendance records
-model Attendance {
-  id                    String            @id @default(uuid()) @db.Uuid
-  studentId             String            @map("student_id") @db.Uuid
-  busId                 String            @map("bus_id") @db.Uuid
-  routeId               String            @map("route_id") @db.Uuid
-  pickupPointId         String?           @map("pickup_point_id") @db.Uuid
-  date                  DateTime          @db.Date
-  status                AttendanceStatus
-  boardingTime          DateTime?         @map("boarding_time")
-  alightingTime         DateTime?         @map("alighting_time")
-  verifiedByPin         Boolean           @default(false) @map("verified_by_pin")
-  verifiedByNfc         Boolean           @default(false) @map("verified_by_nfc")
-  verifiedByQr          Boolean           @default(false) @map("verified_by_qr")
-  locationLat           Float?            @map("location_lat")
-  locationLng           Float?            @map("location_lng")
-  locationAccuracy      Float?            @map("location_accuracy")
-  notes                 String?
-  createdAt             DateTime          @default(now()) @map("created_at")
-  updatedAt             DateTime          @updatedAt @map("updated_at")
+// Trip management for driver operations
+model Trip {
+  id          String      @id @default(uuid()) @db.Uuid
+  driverId    String      @map("driver_id") @db.Uuid
+  busId       String      @map("bus_id") @db.Uuid
+  routeId     String      @map("route_id") @db.Uuid
+
+  // Timing
+  startTime   DateTime    @default(now()) @map("start_time")
+  endTime     DateTime?   @map("end_time")
+
+  // Status
+  status      TripStatus  @default(IN_PROGRESS)
+
+  // Location tracking
+  startLat    Float?      @map("start_lat")
+  startLng    Float?      @map("start_lng")
+  endLat      Float?      @map("end_lat")
+  endLng      Float?      @map("end_lng")
+
+  // Metadata
+  distanceKm  Float?      @map("distance_km")
+  notes       String?
+
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
 
   // Relations
-  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  bus           Bus           @relation(fields: [busId], references: [id])
-  route         Route         @relation(fields: [routeId], references: [id])
-  pickupPoint   PickupPoint?  @relation(fields: [pickupPointId], references: [id])
+  driver      Driver      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  bus         Bus         @relation(fields: [busId], references: [id])
+  route       Route       @relation(fields: [routeId], references: [id])
+
+  @@index([driverId, status])
+  @@index([busId, status])
+  @@index([startTime])
+  @@map("trips")
+}
+
+enum TripStatus {
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// Attendance records
+model Attendance {
+  id               String           @id @default(uuid()) @db.Uuid
+  studentId        String           @map("student_id") @db.Uuid
+  busId            String           @map("bus_id") @db.Uuid
+  routeId          String           @map("route_id") @db.Uuid
+  pickupPointId    String?          @map("pickup_point_id") @db.Uuid
+  date             DateTime         @db.Date
+  status           AttendanceStatus
+  boardingTime     DateTime?        @map("boarding_time")
+  alightingTime    DateTime?        @map("alighting_time")
+  verifiedByPin    Boolean          @default(false) @map("verified_by_pin")
+  verifiedByNfc    Boolean          @default(false) @map("verified_by_nfc")
+  verifiedByQr     Boolean          @default(false) @map("verified_by_qr")
+  locationLat      Float?           @map("location_lat")
+  locationLng      Float?           @map("location_lng")
+  locationAccuracy Float?           @map("location_accuracy")
+  notes            String?
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  bus         Bus          @relation(fields: [busId], references: [id])
+  route       Route        @relation(fields: [routeId], references: [id])
+  pickupPoint PickupPoint? @relation(fields: [pickupPointId], references: [id])
 
   @@unique([studentId, date])
   @@index([busId, date])
@@ -390,39 +438,39 @@ enum AttendanceStatus {
 
 // Payments with Razorpay integration
 model Payment {
-  id              String          @id @default(uuid()) @db.Uuid
-  studentId       String          @map("student_id") @db.Uuid
-  amount          Float
-  currency        String          @default("INR")
-  status          PaymentStatus   @default(PENDING)
-  method          PaymentMethod?
-  
+  id        String         @id @default(uuid()) @db.Uuid
+  studentId String         @map("student_id") @db.Uuid
+  amount    Float
+  currency  String         @default("INR")
+  status    PaymentStatus  @default(PENDING)
+  method    PaymentMethod?
+
   // Razorpay fields
-  razorpayOrderId     String?     @unique @map("razorpay_order_id")
-  razorpayPaymentId   String?     @unique @map("razorpay_payment_id")
-  razorpaySignature   String?     @map("razorpay_signature")
-  
+  razorpayOrderId   String? @unique @map("razorpay_order_id")
+  razorpayPaymentId String? @unique @map("razorpay_payment_id")
+  razorpaySignature String? @map("razorpay_signature")
+
   // Fallback/generic transaction ID
-  transactionId   String?         @map("transaction_id")
-  
+  transactionId String? @map("transaction_id")
+
   // Payment details
-  description     String
-  feeStructureId  String?         @map("fee_structure_id") @db.Uuid
-  metadata        Json?
-  
+  description    String
+  feeStructureId String? @map("fee_structure_id") @db.Uuid
+  metadata       Json?
+
   // Receipt and invoice
-  receiptNumber   String?           @map("receipt_number")
-  invoiceUrl      String?           @map("invoice_url")
-  
+  receiptNumber String? @map("receipt_number")
+  invoiceUrl    String? @map("invoice_url")
+
   // Timestamps
-  paidAt          DateTime?         @map("paid_at")
-  failedAt        DateTime?         @map("failed_at")
-  refundedAt      DateTime?         @map("refunded_at")
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  paidAt     DateTime? @map("paid_at")
+  failedAt   DateTime? @map("failed_at")
+  refundedAt DateTime? @map("refunded_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId, status])
   @@index([razorpayOrderId])
@@ -448,41 +496,41 @@ enum PaymentMethod {
 
 // Bus fee structure
 model BusFeeStructure {
-  id              String    @id @default(uuid()) @db.Uuid
-  routeId         String    @map("route_id") @db.Uuid
-  amount          Float
-  currency        String    @default("INR")
-  academicYear    String    @map("academic_year")
-  semester        Int
-  description     String?
-  dueDate         DateTime  @map("due_date")
-  lateFeePerDay   Float     @default(0) @map("late_fee_per_day")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id            String   @id @default(uuid()) @db.Uuid
+  routeId       String   @map("route_id") @db.Uuid
+  amount        Float
+  currency      String   @default("INR")
+  academicYear  String   @map("academic_year")
+  semester      Int
+  description   String?
+  dueDate       DateTime @map("due_date")
+  lateFeePerDay Float    @default(0) @map("late_fee_per_day")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
-  route  Route  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  route Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
 
   @@map("bus_fee_structures")
 }
 
 // Notifications
 model Notification {
-  id            String              @id @default(uuid()) @db.Uuid
-  userId        String              @map("user_id") @db.Uuid
-  type          NotificationType
-  title         String
-  body          String
-  data          Json?
-  channel       NotificationChannel
-  status        NotificationStatus  @default(PENDING)
-  sentAt        DateTime?           @map("sent_at")
-  deliveredAt   DateTime?           @map("delivered_at")
-  readAt        DateTime?           @map("read_at")
-  createdAt     DateTime            @default(now()) @map("created_at")
+  id          String              @id @default(uuid()) @db.Uuid
+  userId      String              @map("user_id") @db.Uuid
+  type        NotificationType
+  title       String
+  body        String
+  data        Json?
+  channel     NotificationChannel
+  status      NotificationStatus  @default(PENDING)
+  sentAt      DateTime?           @map("sent_at")
+  deliveredAt DateTime?           @map("delivered_at")
+  readAt      DateTime?           @map("read_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
 
   // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@map("notifications")
@@ -517,52 +565,52 @@ enum NotificationStatus {
 
 // Sessions for tracking active logins
 model Session {
-  id          String    @id @default(uuid()) @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
-  token       String    @unique
-  ipAddress   String?   @map("ip_address")
-  userAgent   String?   @map("user_agent")
-  expiresAt   DateTime  @map("expires_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  lastUsedAt  DateTime  @default(now()) @map("last_used_at")
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  token      String   @unique
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  lastUsedAt DateTime @default(now()) @map("last_used_at")
 
   // Relations
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
 
 // Audit Log for tracking all system actions
 model AuditLog {
-  id          String    @id @default(uuid()) @db.Uuid
-  
+  id String @id @default(uuid()) @db.Uuid
+
   // Action details
-  action      AuditAction
-  entityType  String      @map("entity_type")  // e.g., "Bus", "Student", "Payment"
-  entityId    String?     @map("entity_id") @db.Uuid
-  
+  action     AuditAction
+  entityType String      @map("entity_type") // e.g., "Bus", "Student", "Payment"
+  entityId   String?     @map("entity_id") @db.Uuid
+
   // User who performed the action
-  userId      String?     @map("user_id") @db.Uuid
-  userRole    UserRole?   @map("user_role")
-  
+  userId   String?   @map("user_id") @db.Uuid
+  userRole UserRole? @map("user_role")
+
   // Change tracking
-  oldValues   Json?       @map("old_values")
-  newValues   Json?       @map("new_values")
-  metadata    Json?
-  
+  oldValues Json? @map("old_values")
+  newValues Json? @map("new_values")
+  metadata  Json?
+
   // Request context
-  ipAddress   String?     @map("ip_address")
-  userAgent   String?     @map("user_agent")
-  requestId   String?     @map("request_id")
-  
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+  requestId String? @map("request_id")
+
   // Geolocation (if applicable)
-  latitude    Float?
-  longitude   Float?
-  
-  createdAt   DateTime    @default(now()) @map("created_at")
+  latitude  Float?
+  longitude Float?
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([entityType, entityId])
