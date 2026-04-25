@@ -12,6 +12,16 @@ export const DriverEvents = {
   STATUS_CHANGE: 'driver:status-change',
   EMERGENCY_ALERT: 'driver:emergency-alert',
   
+  // Trip Management
+  TRIP_STARTED: 'trip:started',
+  TRIP_ENDED: 'trip:ended',
+  TRIP_PAUSED: 'trip:paused',
+  TRIP_RESUMED: 'trip:resumed',
+  
+  // Duty
+  GO_ON_DUTY: 'driver:on-duty',
+  GO_OFF_DUTY: 'driver:off-duty',
+  
   // Driver receives
   ROUTE_ASSIGNED: 'driver:route-assigned',
   STUDENT_BOARDED: 'driver:student-boarded',
@@ -84,3 +94,10 @@ export const SocketRooms = {
 export const getBusRoom = (busId: string): string => `${SocketRooms.BUS_PREFIX}${busId}`;
 export const getDriverRoom = (driverId: string): string => `${SocketRooms.DRIVER_PREFIX}${driverId}`;
 export const getRouteRoom = (routeId: string): string => `${SocketRooms.ROUTE_PREFIX}${routeId}`;
+
+// Combined export
+export const SocketEvents = {
+  Driver: DriverEvents,
+  Student: StudentEvents,
+  System: SystemEvents,
+};

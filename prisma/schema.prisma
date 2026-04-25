@@ -99,6 +99,7 @@ model Driver {
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   bus            Bus?            @relation("AssignedBus")
   pickupRequests PickupRequest[]
+  trips          Trip[]
 
   @@map("drivers")
 }
@@ -160,6 +161,7 @@ model Bus {
   attendances    Attendance[]
   locations      LocationHistory[]
   pickupRequests PickupRequest[]
+  trips          Trip[]
 
   @@map("buses")
 }
@@ -228,6 +230,7 @@ model Route {
   students      Student[]
   attendances   Attendance[]
   feeStructures BusFeeStructure[]
+  trips         Trip[]
 
   @@map("routes")
 }
