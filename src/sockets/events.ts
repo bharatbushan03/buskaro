@@ -47,6 +47,8 @@ export const StudentEvents = {
   TRIP_ENDED: 'student:trip-ended',
   ETA_UPDATE: 'student:eta-update',
   ATTENDANCE_MARKED: 'student:attendance-marked',
+  PICKUP_CONFIRMED: 'student:pickup-confirmed',
+  PICKUP_EXPIRED: 'student:pickup-expired',
   PAYMENT_SUCCESS: 'student:payment-success',
   PAYMENT_FAILED: 'student:payment-failed',
 } as const;
