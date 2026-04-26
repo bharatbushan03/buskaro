@@ -26,6 +26,10 @@ export const DriverEvents = {
   ROUTE_ASSIGNED: 'driver:route-assigned',
   STUDENT_BOARDED: 'driver:student-boarded',
   SYSTEM_ALERT: 'driver:system-alert',
+  
+  // AI Features
+  PICKUP_CLUSTER_UPDATED: 'driver:pickup-cluster-updated',
+  ROUTE_OPTIMIZED: 'driver:route-optimized',
 } as const;
 
 // ==================== STUDENT EVENTS ====================
@@ -41,6 +45,10 @@ export const StudentEvents = {
   BUS_STATUS: 'student:bus-status',
   BUS_ARRIVAL: 'student:bus-arrival',
   TRIP_ENDED: 'student:trip-ended',
+  ETA_UPDATE: 'student:eta-update',
+  ATTENDANCE_MARKED: 'student:attendance-marked',
+  PAYMENT_SUCCESS: 'student:payment-success',
+  PAYMENT_FAILED: 'student:payment-failed',
 } as const;
 
 // ==================== ADMIN EVENTS ====================
@@ -54,6 +62,8 @@ export const AdminEvents = {
   DRIVER_STATUS: 'admin:driver-status',
   SYSTEM_METRICS: 'admin:system-metrics',
   ALERT_TRIGGERED: 'admin:alert-triggered',
+  DASHBOARD_UPDATE: 'admin:dashboard-update',
+  ATTENDANCE_UPDATE: 'admin:attendance-update',
 } as const;
 
 // ==================== SYSTEM EVENTS ====================
@@ -94,10 +104,13 @@ export const SocketRooms = {
 export const getBusRoom = (busId: string): string => `${SocketRooms.BUS_PREFIX}${busId}`;
 export const getDriverRoom = (driverId: string): string => `${SocketRooms.DRIVER_PREFIX}${driverId}`;
 export const getRouteRoom = (routeId: string): string => `${SocketRooms.ROUTE_PREFIX}${routeId}`;
+export const getStudentRoom = (studentId: string): string => `student:${studentId}`;
+export const getAdminRoom = (): string => SocketRooms.ADMIN_GLOBAL;
 
 // Combined export
 export const SocketEvents = {
   Driver: DriverEvents,
   Student: StudentEvents,
+  Admin: AdminEvents,
   System: SystemEvents,
 };
