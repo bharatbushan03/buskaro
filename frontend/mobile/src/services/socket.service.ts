@@ -156,6 +156,27 @@ class SocketService {
     this.on(SOCKET_EVENTS.STUDENT.ATTENDANCE_MARKED, callback);
   }
 
+  /**
+   * Emit pin location (for students requesting pickup)
+   */
+  emitPinLocation(lat: number, lng: number, address?: string): void {
+    this.emit('student:pin-location', { lat, lng, address });
+  }
+
+  /**
+   * Emit cancel pin (for students cancelling pickup request)
+   */
+  emitCancelPin(pickupId?: string): void {
+    this.emit('student:cancel-pin', { pickupId });
+  }
+
+  /**
+   * Listen for pickup expiry
+   */
+  onPickupExpired(callback: (data: any) => void): void {
+    this.on('pickup:expired', callback);
+  }
+
   // ==================== DRIVER EVENTS ====================
 
   /**
