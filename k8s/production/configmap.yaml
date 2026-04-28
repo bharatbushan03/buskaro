@@ -1,0 +1,29 @@
+# BusKaro Configuration - Non-sensitive values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: buskaro-config
+  namespace: buskaro
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  LOG_LEVEL: "info"
+  JWT_EXPIRES_IN: "7d"
+  SOCKET_CORS_ORIGIN: "*"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "buskaro"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  VITE_API_URL: "https://api.buskaro.com"
+---
+# PostgreSQL ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: buskaro
+data:
+  POSTGRES_USER: "buskaro"
+  POSTGRES_DB: "buskaro"
+  PGDATA: "/var/lib/postgresql/data/pgdata"

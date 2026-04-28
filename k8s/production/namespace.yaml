@@ -1,0 +1,11 @@
+# Kubernetes Namespace for BusKaro Production
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: buskaro
+  labels:
+    name: buskaro
+    environment: production
+    app.kubernetes.io/name: buskaro
+    app.kubernetes.io/part-of: buskaro
+    app.kubernetes.io/managed-by: kubectl
