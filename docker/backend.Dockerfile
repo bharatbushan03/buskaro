@@ -7,10 +7,10 @@ FROM node:20-alpine AS dependencies
 WORKDIR /app
 
 # Copy package files
-COPY backend/package*.json ./
+COPY package*.json ./
 
 # Install dependencies (including dev for build)
-RUN npm ci
+RUN npm install
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
@@ -19,7 +19,8 @@ WORKDIR /app
 
 # Copy dependencies from previous stage
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY backend/ .
+COPY src/ ./src/
+COPY tsconfig.json ./
 
 # Build TypeScript
 RUN npm run build
