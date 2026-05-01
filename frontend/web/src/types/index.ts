@@ -10,7 +10,7 @@ export type {
 
 export type {
   Driver,
-  Bus,
+  Bus as BusType,
   DriverTrip,
   DriverDetails,
   DriversFilters,
@@ -18,3 +18,15 @@ export type {
   DriversResponse,
   AssignBusPayload,
 } from './driver';
+
+export type {
+  Bus,
+  BusRoute,
+  BusDriver,
+  BusDetails,
+  BusesFilters,
+  BusesPagination,
+  BusesResponse,
+  CreateBusPayload,
+  UpdateBusPayload,
+} from './bus';
