@@ -9,6 +9,7 @@ import { Routes as RoutesPage } from './pages/Routes';
 import { Payments } from './pages/Payments';
 import { Analytics } from './pages/Analytics';
 import { StudentsPage } from './pages/admin/StudentsPage';
+import { DriversPage } from './pages/admin/DriversPage';
 
 const App: React.FC = () => {
   return (
@@ -22,6 +23,7 @@ const App: React.FC = () => {
         <Route path="payments" element={<Payments />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="admin/students" element={<StudentsPage />} />
+        <Route path="admin/drivers" element={<DriversPage />} />
       </Route>
     </Routes>
   );

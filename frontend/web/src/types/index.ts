@@ -7,3 +7,14 @@ export type {
   StudentsPagination,
   StudentsResponse,
 } from './student';
+
+export type {
+  Driver,
+  Bus,
+  DriverTrip,
+  DriverDetails,
+  DriversFilters,
+  DriversPagination,
+  DriversResponse,
+  AssignBusPayload,
+} from './driver';
