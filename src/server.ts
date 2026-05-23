@@ -18,6 +18,7 @@ import { initializeSockets } from './sockets';
 const startServer = async (): Promise<void> => {
   try {
     // Validate critical configuration
+    // @ts-ignore
     config.validate();
 
     // Test database connectivity

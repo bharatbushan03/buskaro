@@ -128,7 +128,7 @@ export class StudentService {
    * Get comprehensive dashboard data
    */
   async getDashboard(studentId: string): Promise<DashboardData> {
-    const studentData = await studentRepository.getStudentWithAssignments(studentId);
+    const studentData: any = await studentRepository.getStudentWithAssignments(studentId);
 
     if (!studentData) {
       throw new AppError('Student not found', 404);
@@ -260,7 +260,7 @@ export class StudentService {
    * Get real-time bus tracking data
    */
   async trackBus(studentId: string): Promise<BusTrackingData> {
-    const studentData = await studentRepository.getStudentWithAssignments(studentId);
+    const studentData: any = await studentRepository.getStudentWithAssignments(studentId);
 
     if (!studentData) {
       throw new AppError('Student not found', 404);
@@ -286,10 +286,8 @@ export class StudentService {
       const [latest, previous] = recentHistory;
       speed = latest.speed || undefined;
       heading = latest.heading || calculateBearing(
-        previous.latitude,
-        previous.longitude,
-        latest.latitude,
-        latest.longitude
+        { latitude: previous.latitude, longitude: previous.longitude },
+        { latitude: latest.latitude, longitude: latest.longitude }
       );
     }
 
@@ -314,7 +312,7 @@ export class StudentService {
    * Get route navigation data
    */
   async getRoute(studentId: string) {
-    const studentData = await studentRepository.getStudentWithAssignments(studentId);
+    const studentData: any = await studentRepository.getStudentWithAssignments(studentId);
 
     if (!studentData) {
       throw new AppError('Student not found', 404);
@@ -331,7 +329,7 @@ export class StudentService {
     }
 
     // Build GeoJSON path if available
-    let pathGeoJson = null;
+    let pathGeoJson: any = null;
     if (route.pathGeoJson) {
       const pathData = route.pathGeoJson as any;
       pathGeoJson = {
@@ -402,7 +400,10 @@ export class StudentService {
     currentSpeed?: number
   ): DashboardData['eta'] {
     try {
-      const distanceKm = calculateDistance(busLat, busLng, stopLat, stopLng);
+      const distanceKm = calculateDistance(
+        { latitude: busLat, longitude: busLng },
+        { latitude: stopLat, longitude: stopLng }
+      );
 
       // Use actual speed if available and reasonable, otherwise use average
       const speedKmh = (currentSpeed && currentSpeed > 5) 

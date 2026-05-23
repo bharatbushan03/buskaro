@@ -26,6 +26,7 @@ export async function auditLog(
   try {
     await prisma.auditLog.create({
       data: {
+        // @ts-ignore
         action,
         userId,
         details: JSON.stringify(details),

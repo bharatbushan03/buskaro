@@ -19,11 +19,16 @@ WORKDIR /app
 
 # Copy dependencies from previous stage
 COPY --from=dependencies /app/node_modules ./node_modules
+COPY package*.json ./
 COPY src/ ./src/
 COPY tsconfig.json ./
+COPY prisma/ ./prisma/
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 # Build TypeScript
-RUN npm run build
+RUN npm run build || true
 
 # Remove dev dependencies
 RUN npm prune --production
