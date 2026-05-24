@@ -34,6 +34,7 @@ import { socketService } from '../../services/socket.service';
 import { api } from '../../services/api.service';
 import { getCurrentLocation, requestLocationPermissions } from '../../services/location.service';
 import { ETAResult } from '../../types';
+import { ENDPOINTS } from '../../constants/api';
 import { colors, spacing, typography } from '../../theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -118,12 +119,35 @@ export const HomeScreen: React.FC = () => {
       setError(null);
 
       // Get student's dashboard data
-      const response = await api.get('/api/students/dashboard');
-      const { bus: busData, route: routeData, pickupPoint: pickupData } = response.data.data;
+      const response = await api.get<any>(ENDPOINTS.STUDENT.DASHBOARD);
+      const {
+        bus: busData,
+        route: routeData,
+        pickupPoint: pickupData,
+        busLocation: dashboardBusLocation,
+        eta: dashboardEta,
+      } = response.data.data;
 
       setBus(busData);
-      setRoute(routeData);
+      setRoute(routeData ? {
+        ...routeData,
+        pickupPoints: routeData.pickupPoints || routeData.stops || [],
+      } : null);
       setPickupPoint(pickupData);
+
+      if (dashboardBusLocation) {
+        setBusLocation({
+          lat: dashboardBusLocation.lat,
+          lng: dashboardBusLocation.lng,
+          speed: dashboardBusLocation.speed,
+          heading: dashboardBusLocation.heading,
+          timestamp: dashboardBusLocation.lastUpdated,
+        });
+      }
+
+      if (dashboardEta) {
+        setETA(dashboardEta);
+      }
 
       // Get current location
       const hasPermission = await requestLocationPermissions();
@@ -140,21 +164,25 @@ export const HomeScreen: React.FC = () => {
 
       // Fetch bus tracking data if bus is assigned
       if (busData?.id) {
-        const trackingResponse = await api.get(`/api/students/track-bus?busId=${busData.id}`);
-        const { location, eta: etaData } = trackingResponse.data.data;
+        try {
+          const trackingResponse = await api.get<any>(`${ENDPOINTS.STUDENT.TRACK_BUS}?busId=${busData.id}`);
+          const { location, eta: etaData } = trackingResponse.data.data;
 
-        if (location) {
-          setBusLocation({
-            lat: location.lat,
-            lng: location.lng,
-            speed: location.speed,
-            heading: location.heading,
-            timestamp: location.timestamp,
-          });
-        }
+          if (location) {
+            setBusLocation({
+              lat: location.lat,
+              lng: location.lng,
+              speed: trackingResponse.data.data.speed,
+              heading: trackingResponse.data.data.heading,
+              timestamp: location.lastUpdated,
+            });
+          }
 
-        if (etaData) {
-          setETA(etaData);
+          if (etaData) {
+            setETA(etaData);
+          }
+        } catch (trackingError) {
+          console.warn('Bus tracking unavailable:', trackingError);
         }
 
         // Join bus socket room

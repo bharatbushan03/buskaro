@@ -5,24 +5,24 @@
  * Prisma is used as the ORM for type-safe database operations.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { config } from './app.config';
 import { logger } from '../utils/logger';
 
 // Prisma client with query logging in development
-const prismaOptions = config.nodeEnv === 'development' 
+const prismaOptions: Prisma.PrismaClientOptions = config.nodeEnv === 'development' 
   ? {
       log: [
         { emit: 'event', level: 'query' },
         { emit: 'event', level: 'error' },
         { emit: 'event', level: 'info' },
         { emit: 'event', level: 'warn' },
-      ] as const,
+      ],
     }
   : {
       log: [
         { emit: 'event', level: 'error' },
-      ] as const,
+      ],
     };
 
 // Singleton instance

@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useAuthStore } from './src/store/auth.store';
 import { socketService } from './src/services/socket.service';
-import { initializeLocationTracking } from './src/services/location.service';
+import { initializeLocationTracking, stopLocationTracking } from './src/services/location.service';
 
 // React Query client
 const queryClient = new QueryClient({
@@ -28,12 +28,18 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
-  const { isAuthenticated, user, token } = useAuthStore();
+  const { isAuthenticated, user, token, refreshAccessToken, logout } = useAuthStore();
 
   useEffect(() => {
     // Initialize socket connection if authenticated
     if (isAuthenticated && token) {
-      socketService.connect(token);
+      socketService.connect(token, async () => {
+        const success = await refreshAccessToken();
+        if (!success) {
+          console.error('Socket auth failed and token refresh failed');
+          await logout();
+        }
+      });
 
       // Initialize location tracking for drivers
       if (user?.role === 'DRIVER') {
@@ -42,6 +48,7 @@ export default function App() {
     }
 
     return () => {
+      stopLocationTracking();
       socketService.disconnect();
     };
   }, [isAuthenticated, token, user?.role]);

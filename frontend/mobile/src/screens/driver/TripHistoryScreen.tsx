@@ -151,7 +151,7 @@ export const TripHistoryScreen: React.FC = () => {
       <View style={styles.cardHeader}>
         <View style={styles.routeInfo}>
           <View style={styles.routeIcon}>
-            <Route size={20} color={colors.primary} />
+            <Route size={20} color={colors.primary[500]} />
           </View>
           <View>
             <Text style={styles.routeName}>{item.routeName}</Text>
@@ -195,17 +195,17 @@ export const TripHistoryScreen: React.FC = () => {
           
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Users size={16} color={colors.primary} />
+              <Users size={16} color={colors.primary[500]} />
               <Text style={styles.statValue}>{item.passengers}</Text>
               <Text style={styles.statLabel}>Passengers</Text>
             </View>
             <View style={styles.statItem}>
-              <DollarSign size={16} color={colors.success} />
+              <DollarSign size={16} color={colors.success.main} />
               <Text style={styles.statValue}>₹{item.earnings}</Text>
               <Text style={styles.statLabel}>Earnings</Text>
             </View>
             <View style={styles.statItem}>
-              <Star size={16} color={colors.warning} />
+              <Star size={16} color={colors.warning.main} />
               <Text style={styles.statValue}>{item.rating}</Text>
               <Text style={styles.statLabel}>Rating</Text>
             </View>
@@ -244,22 +244,22 @@ export const TripHistoryScreen: React.FC = () => {
       {/* Stats Summary */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <TrendingUp size={20} color={colors.primary} />
+          <TrendingUp size={20} color={colors.primary[500]} />
           <Text style={styles.statNumber}>{stats.totalTrips}</Text>
           <Text style={styles.statLabel}>Total Trips</Text>
         </View>
         <View style={styles.statCard}>
-          <DollarSign size={20} color={colors.success} />
+          <DollarSign size={20} color={colors.success.main} />
           <Text style={styles.statNumber}>₹{stats.totalEarnings}</Text>
           <Text style={styles.statLabel}>Earnings</Text>
         </View>
         <View style={styles.statCard}>
-          <MapPin size={20} color={colors.info} />
+          <MapPin size={20} color={colors.info.main} />
           <Text style={styles.statNumber}>{stats.totalDistance}km</Text>
           <Text style={styles.statLabel}>Distance</Text>
         </View>
         <View style={styles.statCard}>
-          <Star size={20} color={colors.warning} />
+          <Star size={20} color={colors.warning.main} />
           <Text style={styles.statNumber}>{stats.avgRating}</Text>
           <Text style={styles.statLabel}>Rating</Text>
         </View>
@@ -283,7 +283,7 @@ export const TripHistoryScreen: React.FC = () => {
       {/* Content */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
           <Text style={styles.loadingText}>Loading trips...</Text>
         </View>
       ) : (
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: colors.primary + '15',
+    backgroundColor: colors.primary[500] + '15',
   },
   tabText: {
     ...typography.body2,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: colors.primary,
+    color: colors.primary[500],
     fontWeight: '600',
   },
   listContainer: {
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary + '15',
+    backgroundColor: colors.primary[500] + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing[3],
@@ -422,20 +422,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   completedBadge: {
-    backgroundColor: colors.success + '15',
+    backgroundColor: colors.success.main + '15',
   },
   cancelledBadge: {
-    backgroundColor: colors.error + '15',
+    backgroundColor: colors.error.main + '15',
   },
   statusText: {
     ...typography.caption,
     fontWeight: '600',
   },
   completedText: {
-    color: colors.success,
+    color: colors.success.main,
   },
   cancelledText: {
-    color: colors.error,
+    color: colors.error.main,
   },
   divider: {
     height: 1,
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   statLabel: {
     ...typography.caption,
     color: colors.text.secondary,
-    marginTop: spacing[0.5],
+    marginTop: 4,
   },
   locationsRow: {
     flexDirection: 'row',
@@ -488,11 +488,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.success,
+    backgroundColor: colors.success.main,
     marginRight: spacing[2],
   },
   dotEnd: {
-    backgroundColor: colors.error,
+    backgroundColor: colors.error.main,
   },
   locationText: {
     ...typography.body2,

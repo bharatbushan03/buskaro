@@ -92,7 +92,7 @@ export class AuthService {
   /**
    * Login user
    */
-  async login(credentials: LoginCredentials): Promise<{ userId: string; tokens: AuthTokens }> {
+  async login(credentials: LoginCredentials): Promise<{ userId: string; user: any; tokens: AuthTokens }> {
     // Find user by email
     const user = await this.repository.findByEmail(credentials.email);
     if (!user) {
@@ -126,6 +126,7 @@ export class AuthService {
 
     return {
       userId: user.id,
+      user,
       tokens,
     };
   }

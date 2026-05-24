@@ -56,6 +56,7 @@ export class AuthController {
     successResponse(
       res,
       {
+        user: result.user,
         userId: result.userId,
         accessToken: result.tokens.accessToken,
         refreshToken: result.tokens.refreshToken,

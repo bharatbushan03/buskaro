@@ -8,6 +8,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/app.config';
+import { prisma } from '../config/database.config';
 import { AuthenticationError, AuthorizationError } from './error.middleware';
 import { UserRole } from '../types/user.types';
 
@@ -30,6 +31,9 @@ declare global {
         id: string;
         email: string;
         role: UserRole;
+        studentId?: string;
+        driverId?: string;
+        adminId?: string;
       };
     }
   }
@@ -49,7 +53,7 @@ export const generateAccessToken = (userId: string, email: string, role: UserRol
   return jwt.sign(
     { userId, email, role, type: 'access' },
     config.jwtSecret,
-    { expiresIn: config.jwtAccessExpiration }
+    { expiresIn: config.jwtAccessExpiration as any }
   );
 };
 
@@ -60,7 +64,7 @@ export const generateRefreshToken = (userId: string, email: string, role: UserRo
   return jwt.sign(
     { sub: userId, userId, email, role, type: 'refresh' },
     config.jwtRefreshSecret,
-    { expiresIn: config.jwtRefreshExpiration }
+    { expiresIn: config.jwtRefreshExpiration as any }
   );
 };
 
@@ -98,14 +102,27 @@ export const authenticate = (
       throw new AuthenticationError('Invalid token type');
     }
 
-    // Attach user to request
-    req.user = {
-      id: payload.userId,
-      email: payload.email,
-      role: payload.role,
-    };
+    prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        student: { select: { id: true } },
+        driver: { select: { id: true } },
+        admin: { select: { id: true } },
+      },
+    })
+      .then((user) => {
+        req.user = {
+          id: payload.userId,
+          email: payload.email,
+          role: payload.role,
+          studentId: user?.student?.id,
+          driverId: user?.driver?.id,
+          adminId: user?.admin?.id,
+        };
 
-    next();
+        next();
+      })
+      .catch(() => next(new AuthenticationError('Invalid token')));
   } catch (error) {
     if (error instanceof AuthenticationError) {
       next(error);
@@ -134,15 +151,31 @@ export const optionalAuth = (
     const token = authHeader.substring(7);
     const payload = verifyToken(token, config.jwtSecret);
 
-    if (payload.type === 'access') {
-      req.user = {
-        id: payload.userId,
-        email: payload.email,
-        role: payload.role,
-      };
+    if (payload.type !== 'access') {
+      return next();
     }
 
-    next();
+    prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        student: { select: { id: true } },
+        driver: { select: { id: true } },
+        admin: { select: { id: true } },
+      },
+    })
+      .then((user) => {
+        req.user = {
+          id: payload.userId,
+          email: payload.email,
+          role: payload.role,
+          studentId: user?.student?.id,
+          driverId: user?.driver?.id,
+          adminId: user?.admin?.id,
+        };
+
+        next();
+      })
+      .catch(() => next());
   } catch {
     // Ignore errors for optional auth
     next();

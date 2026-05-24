@@ -12,6 +12,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
@@ -27,10 +28,12 @@ import { DriverMapView, DriverMapViewRef } from '../../components/driver/DriverM
 import { TripControlBar } from '../../components/driver/TripControlBar';
 import { PickupListSheet } from '../../components/driver/PickupListSheet';
 import { useDriverStore } from '../../store/driver.store';
+import { Trip } from '../../types';
 import { socketService } from '../../services/socket.service';
 import { api } from '../../services/api.service';
 import { getCurrentLocation, startLocationTracking, stopLocationTracking } from '../../services/location.service';
 import { PickupRequest } from '../../types';
+import { ENDPOINTS } from '../../constants/api';
 import { colors, spacing } from '../../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -40,6 +43,42 @@ interface PickupWithMetrics extends PickupRequest {
   distance?: number;
   etaMinutes?: number;
 }
+
+const normalizeTripStatus = (status?: string) => {
+  if (status === 'IN_PROGRESS' || status === 'PAUSED' || status === 'IN_SERVICE') {
+    return 'IN_SERVICE' as const;
+  }
+
+  if (status === 'COMPLETED') {
+    return 'COMPLETED' as const;
+  }
+
+  return 'IDLE' as const;
+};
+
+const normalizeRoutePath = (path: any) => {
+  const coordinates = Array.isArray(path)
+    ? path
+    : path?.geometry?.coordinates;
+
+  if (!Array.isArray(coordinates)) {
+    return null;
+  }
+
+  return coordinates
+    .map((point: any) => {
+      if (Array.isArray(point) && point.length >= 2) {
+        return { latitude: point[1], longitude: point[0] };
+      }
+
+      if (typeof point?.lat === 'number' && typeof point?.lng === 'number') {
+        return { latitude: point.lat, longitude: point.lng };
+      }
+
+      return null;
+    })
+    .filter(Boolean) as Array<{ latitude: number; longitude: number }>;
+};
 
 export const DashboardScreen: React.FC = () => {
   const mapRef = useRef<DriverMapViewRef>(null);
@@ -165,10 +204,15 @@ export const DashboardScreen: React.FC = () => {
       }
 
       // Fetch active trip
-      const tripResponse = await api.get('/api/drivers/active-trip');
-      if (tripResponse.data.data) {
-        setTrip(tripResponse.data.data);
-        setTripStatus(tripResponse.data.data.status);
+      const tripResponse = await api.get<any>(ENDPOINTS.DRIVER.TRIP_STATUS);
+      const tripData = tripResponse.data.data;
+      if (tripData?.hasActiveTrip && tripData.trip) {
+        const normalizedStatus = normalizeTripStatus(tripData.trip.status);
+        setTrip({ ...tripData.trip, status: normalizedStatus } as Trip);
+        setTripStatus(normalizedStatus);
+      } else {
+        setTrip(null);
+        setTripStatus('IDLE');
       }
 
       // Fetch assigned route and pickups
@@ -187,20 +231,18 @@ export const DashboardScreen: React.FC = () => {
   const fetchRouteAndPickups = async () => {
     try {
       const [routeResponse, pickupsResponse] = await Promise.all([
-        api.get('/api/drivers/route'),
-        api.get('/api/drivers/pickups'),
+        api.get<any>(ENDPOINTS.DRIVER.ROUTE),
+        api.get<any>(ENDPOINTS.DRIVER.PICKUPS.NEARBY),
       ]);
 
       if (routeResponse.data.data) {
         const route = routeResponse.data.data;
-        setRoutePath(route.path?.map((point: any) => ({
-          latitude: point.lat,
-          longitude: point.lng,
-        })) || null);
+        setRoutePath(normalizeRoutePath(route.path));
       }
 
       if (pickupsResponse.data.data) {
-        setPickups(pickupsResponse.data.data);
+        const pickupData = pickupsResponse.data.data;
+        setPickups(Array.isArray(pickupData) ? pickupData : pickupData.pickups || []);
       }
     } catch (error) {
       console.error('Failed to fetch route/pickups:', error);
@@ -298,7 +340,7 @@ export const DashboardScreen: React.FC = () => {
       setStartingTrip(true);
       setError(null);
 
-      const response = await api.post('/api/drivers/start-trip');
+      const response = await api.post<any>(ENDPOINTS.DRIVER.TRIP.START);
       const newTrip = response.data.data;
       
       setTrip(newTrip);
@@ -364,7 +406,7 @@ export const DashboardScreen: React.FC = () => {
       setEndingTrip(true);
       setError(null);
 
-      await api.post('/api/drivers/end-trip');
+      await api.post(ENDPOINTS.DRIVER.TRIP.END);
       
       setTrip(null);
       setTripStatus('COMPLETED');
@@ -414,7 +456,7 @@ export const DashboardScreen: React.FC = () => {
     try {
       setCompletingPickup(true);
 
-      await api.patch(`/api/drivers/pickup/${pickupId}/complete`);
+      await api.patch(ENDPOINTS.DRIVER.PICKUPS.COMPLETE(pickupId));
       
       // Emit socket event
       socketService.emit('driver:pickup-complete', { pickupId });
@@ -575,4 +617,3 @@ const styles = StyleSheet.create({
 });
 
 export default DashboardScreen;
-

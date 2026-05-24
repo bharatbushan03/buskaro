@@ -167,7 +167,7 @@ export class StudentController {
             expiresAt: activePickup.expiresAt,
             driver: activePickup.driver ? {
               name: activePickup.driver.name,
-              phone: activePickup.driver.phone,
+              phone: activePickup.driver.user?.phone,
             } : null,
           } : null,
         },

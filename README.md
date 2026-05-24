@@ -1,141 +1,145 @@
-# BusKaro Backend
+# BusKaro
 
-AI-powered college bus tracking system - Production-ready backend API.
+BusKaro is a college bus tracking system with a Node.js backend API and an Expo React Native mobile app for students and drivers.
 
-## Architecture
+## Project Structure
 
-This project follows a **layered architecture** pattern:
-
-```
-Controller → Service → Repository → Database
-```
-
-### Key Design Principles
-
-1. **Modularity**: Feature-based module organization
-2. **Dependency Injection**: Services receive repositories via constructors
-3. **Separation of Concerns**: Each layer has a single responsibility
-4. **Type Safety**: Full TypeScript coverage with strict mode
-5. **Scalability**: Stateless design suitable for horizontal scaling
-
-## Folder Structure
-
-```
-src/
-├── config/           # App configuration (database, redis, etc.)
-├── constants/        # App-wide constants
-├── types/            # Global TypeScript types
-├── utils/            # Utility functions
-├── middleware/       # Express middlewares
-├── services/         # Shared services (email, sms, etc.)
-├── repositories/     # Database abstraction layer
-├── sockets/          # Socket.io real-time handlers
-├── modules/          # Feature-based modules
-│   ├── auth/         # Authentication
-│   ├── users/        # User management
-│   ├── buses/        # Bus fleet & tracking
-│   ├── routes/       # Routes & pickup points
-│   ├── pickups/      # Pickup operations
-│   ├── payments/     # Fee management
-│   ├── attendance/   # Student attendance
-│   └── notifications/# Push notifications
-├── app.ts            # Express app factory
-└── server.ts         # Application entry point
+```text
+.
+├── src/                 # Backend API modules, middleware, sockets, config
+├── prisma/              # Prisma schema and seed data
+├── frontend/
+│   ├── mobile/          # Expo React Native app
+│   └── web/             # Admin web app
+└── docker/              # Deployment support
 ```
 
-## Module Structure
+## Requirements
 
-Each module follows a consistent pattern:
+- Node.js 20.19.4 or newer for the Expo mobile app
+- Node.js 18 or newer for the backend
+- PostgreSQL 14 or newer
+- Redis 6 or newer
+- Latest Expo Go app on Android/iOS
 
+If your system Node is older, Expo may show:
+
+```text
+Node.js is outdated and unsupported. Please update to a newer Node.js LTS version.
 ```
-modules/[module]/
-├── [module].routes.ts      # Route definitions
-├── [module].controller.ts  # Request handlers
-├── [module].service.ts     # Business logic
-├── [module].repository.ts  # Database operations
-└── [module].types.ts       # Module-specific types
-```
 
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- PostgreSQL 14+
-- Redis 6+
-
-### Installation
+Install the latest LTS from <https://nodejs.org/en/download> or run Expo with a temporary newer Node:
 
 ```bash
-# Install dependencies
+npx -p node@20.19.4 node node_modules/expo/bin/cli start --lan --clear
+```
+
+## Backend Setup
+
+```bash
 npm install
-
-# Set up environment variables
 cp .env.example .env
-# Edit .env with your configuration
-
-# Set up database
-npx prisma migrate dev
 npx prisma generate
-
-# Start development server
+npx prisma db push
+npm run db:seed
 npm run dev
 ```
 
-### Environment Variables
+The API runs on port `5000` by default and exposes endpoints under `/api/v1`.
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `REDIS_URL` | Redis connection string | Yes |
-| `JWT_SECRET` | JWT signing key (min 32 chars) | Yes |
-| `JWT_REFRESH_SECRET` | Refresh token signing key | Yes |
-| `PORT` | Server port (default: 5000) | No |
-| `NODE_ENV` | Environment (development/production) | No |
+Useful backend scripts:
 
-## API Documentation
-
-### Authentication Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register new user |
-| POST | `/api/v1/auth/login` | Login user |
-| POST | `/api/v1/auth/refresh` | Refresh access token |
-| POST | `/api/v1/auth/logout` | Logout user |
-| POST | `/api/v1/auth/logout-all` | Logout all devices |
-| POST | `/api/v1/auth/change-password` | Change password |
-| GET | `/api/v1/auth/me` | Get current user |
-
-### Health Check
-
-```
-GET /health
+```bash
+npm run dev
+npm run typecheck
+npm run db:studio
+npm run db:seed
 ```
 
-## Scripts
+## Mobile App Setup
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build for production |
-| `npm start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript type check |
-| `npm run db:migrate` | Run database migrations |
-| `npm run db:studio` | Open Prisma Studio |
+```bash
+cd frontend/mobile
+npm install
+npm run type-check
+npx expo start --lan --clear
+```
 
-## Technology Stack
+For Expo SDK 54, keep Expo Go updated from the Play Store/App Store. Older Expo Go versions will show:
 
-- **Runtime**: Node.js + TypeScript
-- **Framework**: Express.js
-- **Database**: PostgreSQL + Prisma ORM
-- **Cache**: Redis (ioredis)
-- **Auth**: JWT (jsonwebtoken)
-- **Real-time**: Socket.io
-- **Validation**: express-validator
-- **Logging**: Winston
-- **Security**: Helmet, CORS, Rate Limiting
+```text
+Project is incompatible with this version of Expo Go
+This project requires a newer version of Expo Go.
+```
+
+The mobile app derives the backend URL from the Expo development server host during local development. You can override it manually:
+
+```bash
+EXPO_PUBLIC_API_URL=http://YOUR_COMPUTER_IP:5000
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:EXPO_PUBLIC_API_URL="http://YOUR_COMPUTER_IP:5000"
+npx expo start --lan --clear
+```
+
+## Seed Login Accounts
+
+After running `npm run db:seed`, use:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Student | `amit@college.edu` | `student123` |
+| Driver | `driver1@buskaro.com` | `driver123` |
+| Admin | `admin@buskaro.com` | `admin123` |
+
+## Recent Mobile Fixes
+
+- Updated the Expo mobile app to SDK 54-compatible packages.
+- Added Expo config files for Metro, Babel, fonts, and secure storage.
+- Fixed mobile API endpoint constants for student dashboard, pickup requests, driver trips, route, and pickups.
+- Fixed driver dashboard trip status handling by mapping backend `IN_PROGRESS`/`PAUSED` to mobile `IN_SERVICE`.
+- Fixed driver route and pickup backend queries to match the Prisma schema.
+- Made denied location permission non-fatal so the dashboard can still load.
+- Added `.expo/` to `.gitignore`.
+
+## Driver Dashboard Notes
+
+Driver tracking requires location permission on the phone. If permission is denied, the dashboard still loads, but live driver location updates are disabled until permission is granted in device settings.
+
+If the mobile app shows stale auth or token errors after backend changes, log out and log in again with one of the seed accounts.
+
+## Validation
+
+Mobile validation:
+
+```bash
+cd frontend/mobile
+npm run type-check
+npx expo export --platform android --output-dir .expo-export-check --clear
+```
+
+Backend smoke test example:
+
+```powershell
+$login = Invoke-RestMethod -Method Post -Uri http://localhost:5000/api/v1/auth/login -ContentType 'application/json' -Body '{"email":"driver1@buskaro.com","password":"driver123"}'
+$token = $login.data.accessToken
+Invoke-RestMethod -Method Get -Uri http://localhost:5000/api/v1/drivers/route -Headers @{ Authorization = "Bearer $token" }
+Invoke-RestMethod -Method Get -Uri http://localhost:5000/api/v1/drivers/pickups/nearby -Headers @{ Authorization = "Bearer $token" }
+```
+
+## Main Backend Modules
+
+- `auth` - login, register, refresh, logout
+- `students` - student dashboard, bus tracking, pickup status
+- `drivers` - driver dashboard, route navigation, trip lifecycle
+- `pickups` - dynamic pickup pins and requests
+- `buses` - fleet and bus tracking
+- `routes` - routes and pickup points
+- `payments` - fee and payment records
+- `attendance` - bus attendance records
 
 ## License
 

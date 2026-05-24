@@ -55,6 +55,13 @@ export const TripControlBar: React.FC<TripControlBarProps> = ({
           icon: 'flag' as const,
           text: 'COMPLETED',
         };
+      default:
+        return {
+          color: colors.grey[400],
+          bgColor: colors.grey[100],
+          icon: 'car' as const,
+          text: 'IDLE',
+        };
     }
   };
 

@@ -168,7 +168,7 @@ export const useDriverStore = create<DriverState>((set, get) => ({
   getActivePickups: () => {
     const { pickups } = get();
     return pickups.filter(p => 
-      ['PENDING', 'CONFIRMED', 'ACTIVE'].includes(p.status)
+      ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ACTIVE'].includes(p.status)
     );
   },
   

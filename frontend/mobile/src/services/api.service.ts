@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
         }
 
         // Attempt to refresh token
-        const response = await axios.post(`${API_CONFIG.BASE_URL}/api/auth/refresh`, {
+        const response = await axios.post(`${API_CONFIG.BASE_URL}/api/v1/auth/refresh`, {
           refreshToken,
         });
 
@@ -69,9 +69,9 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Token refresh failed, logout user
-        await AsyncStorage.multiRemove([
-          STORAGE_KEYS.ACCESS_TOKEN,
-          STORAGE_KEYS.REFRESH_TOKEN,
+        await Promise.all([
+          AsyncStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN),
+          AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
         ]);
         
         // Navigate to login (this should be handled by navigation)

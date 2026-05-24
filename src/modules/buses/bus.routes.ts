@@ -1,21 +1,43 @@
 /**
  * Bus Routes - Module Structure
- * 
+ *
  * Bus fleet management and real-time tracking
  */
 
 import { Router } from 'express';
+import { busController } from './bus.controller';
+import { authenticate } from '../../middleware/auth.middleware';
+import { requireRole } from '../../middleware/rbac.middleware';
+import { UserRole } from '@prisma/client';
 
 const router = Router();
 
-// Routes to be implemented:
-// GET    /api/v1/buses              - List all buses
-// POST   /api/v1/buses              - Create bus (admin)
-// GET    /api/v1/buses/:id          - Get bus details
-// PUT    /api/v1/buses/:id          - Update bus (admin)
-// DELETE /api/v1/buses/:id          - Delete bus (admin)
-// POST   /api/v1/buses/:id/location - Update bus location (driver)
-// GET    /api/v1/buses/:id/location - Get current location
-// POST   /api/v1/buses/:id/assign   - Assign driver/route (admin)
+/**
+ * @route   GET /api/v1/buses
+ * @desc    List all buses
+ * @access  Private
+ */
+router.get('/', authenticate, busController.getBuses);
+
+/**
+ * @route   GET /api/v1/buses/:id
+ * @desc    Get bus details
+ * @access  Private
+ */
+router.get('/:id', authenticate, busController.getBus);
+
+/**
+ * @route   POST /api/v1/buses
+ * @desc    Create bus
+ * @access  Private (Admin)
+ */
+router.post('/', authenticate, requireRole(UserRole.ADMIN), busController.createBus);
+
+/**
+ * @route   PUT /api/v1/buses/:id
+ * @desc    Update bus
+ * @access  Private (Admin)
+ */
+router.put('/:id', authenticate, requireRole(UserRole.ADMIN), busController.updateBus);
 
 export { router as busRoutes };

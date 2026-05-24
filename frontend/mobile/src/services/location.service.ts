@@ -31,13 +31,58 @@ export async function hasLocationPermission(): Promise<boolean> {
  */
 export async function getCurrentLocation(): Promise<Location.LocationObject | null> {
   try {
+    const hasPermission = await hasLocationPermission();
+    if (!hasPermission) {
+      const granted = await requestLocationPermissions();
+      if (!granted) {
+        console.warn('Location permission denied');
+        return null;
+      }
+    }
+
     const location = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.High,
     });
     return location;
   } catch (error) {
-    console.error('Failed to get location:', error);
+    console.warn('Failed to get location:', error);
     return null;
+  }
+}
+
+/**
+ * Start location tracking with a custom callback
+ */
+export async function startLocationTracking(callback: (location: Location.LocationObject) => void): Promise<void> {
+  const { user } = useAuthStore.getState();
+  
+  if (user?.role !== 'DRIVER') {
+    return;
+  }
+
+  const hasPermission = await hasLocationPermission();
+  
+  if (!hasPermission) {
+    const granted = await requestLocationPermissions();
+    if (!granted) {
+      console.warn('Location permission denied');
+      return;
+    }
+  }
+
+  try {
+    locationSubscription = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.High,
+        timeInterval: 5000,
+        distanceInterval: 10,
+      },
+      callback
+    );
+
+    console.log('Location tracking started with custom callback');
+  } catch (error) {
+    console.warn('Failed to start location tracking:', error);
   }
 }
 
@@ -63,23 +108,27 @@ export async function initializeLocationTracking(): Promise<void> {
   }
 
   // Start watching position
-  locationSubscription = await Location.watchPositionAsync(
-    {
-      accuracy: Location.Accuracy.High,
-      timeInterval: 5000, // Update every 5 seconds
-      distanceInterval: 10, // Or every 10 meters
-    },
-    (location) => {
-      // Send location to server
-      socketService.updateLocation(
-        location.coords.latitude,
-        location.coords.longitude,
-        location.coords.speed || undefined
-      );
-    }
-  );
+  try {
+    locationSubscription = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.High,
+        timeInterval: 5000, // Update every 5 seconds
+        distanceInterval: 10, // Or every 10 meters
+      },
+      (location) => {
+        // Send location to server
+        socketService.updateLocation(
+          location.coords.latitude,
+          location.coords.longitude,
+          location.coords.speed || undefined
+        );
+      }
+    );
 
-  console.log('Location tracking started');
+    console.log('Location tracking started');
+  } catch (error) {
+    console.warn('Failed to start location tracking:', error);
+  }
 }
 
 /**
@@ -103,14 +152,14 @@ export function calculateDistance(
   lon2: number
 ): number {
   const R = 6371e3; // Earth radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
 
   const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c; // Distance in meters
@@ -120,6 +169,7 @@ export default {
   requestLocationPermissions,
   hasLocationPermission,
   getCurrentLocation,
+  startLocationTracking,
   initializeLocationTracking,
   stopLocationTracking,
   calculateDistance,

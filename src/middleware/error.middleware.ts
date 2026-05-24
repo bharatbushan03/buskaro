@@ -77,7 +77,7 @@ export const errorHandler = (
   _next: NextFunction
 ): void => {
   // Default error values
-  let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+  let statusCode: number = HttpStatus.INTERNAL_SERVER_ERROR;
   let message = 'Internal server error';
   let errors: ApiError[] | undefined;
   let code = 'INTERNAL_ERROR';
@@ -106,7 +106,7 @@ export const errorHandler = (
     code = 'TOKEN_EXPIRED';
   } else if (err.name === 'PrismaClientKnownRequestError') {
     // Handle Prisma known errors
-    const prismaError = err as { code: string; meta?: { target?: string[] } };
+    const prismaError = err as unknown as { code: string; meta?: { target?: string[] } };
     
     if (prismaError.code === 'P2002') {
       statusCode = HttpStatus.CONFLICT;

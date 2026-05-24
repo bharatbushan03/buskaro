@@ -9,7 +9,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, UserRole } from '../types';
 import { apiClient } from '../services/api.service';
-import { STORAGE_KEYS } from '../constants/api';
+import { ENDPOINTS, STORAGE_KEYS } from '../constants/api';
 
 interface AuthState {
   // State
@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await apiClient.post('/api/auth/login', {
+          const response = await apiClient.post(ENDPOINTS.AUTH.LOGIN, {
             email,
             password,
           });
@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await apiClient.post('/api/auth/register', data);
+          const response = await apiClient.post(ENDPOINTS.AUTH.REGISTER, data);
 
           const { user, accessToken, refreshToken } = response.data.data;
 
@@ -111,16 +111,16 @@ export const useAuthStore = create<AuthState>()(
       // Logout action
       logout: async () => {
         try {
-          await apiClient.post('/api/auth/logout');
+          await apiClient.post(ENDPOINTS.AUTH.LOGOUT);
         } catch (error) {
           console.error('Logout API error:', error);
         }
 
         // Clear storage
-        await AsyncStorage.multiRemove([
-          STORAGE_KEYS.ACCESS_TOKEN,
-          STORAGE_KEYS.REFRESH_TOKEN,
-          STORAGE_KEYS.USER_DATA,
+        await Promise.all([
+          AsyncStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN),
+          AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
+          AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA),
         ]);
 
         // Reset state
@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const response = await apiClient.post('/api/auth/refresh', {
+          const response = await apiClient.post(ENDPOINTS.AUTH.REFRESH, {
             refreshToken,
           });
 

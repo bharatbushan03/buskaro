@@ -69,20 +69,37 @@ export interface PickupPoint {
 }
 
 // Pickup Request Types
-export type PickupStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
+export type PickupStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED' | 'CONFIRMED' | 'ACTIVE';
 
 export interface PickupRequest {
   id: string;
   studentId: string;
   studentName?: string;
   driverId?: string;
+  driver?: { id: string; name: string; phone?: string };
   driverName?: string;
   lat: number;
   lng: number;
   status: PickupStatus;
   note?: string;
+  address?: string;
+  estimatedArrivalTime?: string;
   expiresAt: string;
   createdAt: string;
+  distance?: number;
+  etaMinutes?: number;
+}
+
+export interface Trip {
+  id: string;
+  driverId: string;
+  busId: string;
+  routeId: string;
+  status: 'IDLE' | 'IN_SERVICE' | 'COMPLETED';
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PickupCluster {

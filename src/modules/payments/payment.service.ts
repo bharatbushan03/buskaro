@@ -50,14 +50,12 @@ export interface StudentFeesSummary {
 export class PaymentService {
   private razorpay: Razorpay;
 
-  constructor(private repository: PaymentRepository) {
-    // Initialize Razorpay
+  constructor(config: any = {}) {
     const keyId = config.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
     const keySecret = config.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || !keySecret) {
-      logger.error('Razorpay credentials not configured');
-      throw new AppError('Payment gateway not configured', 500);
+      throw new Error("Razorpay credentials are missing");
     }
 
     this.razorpay = new Razorpay({

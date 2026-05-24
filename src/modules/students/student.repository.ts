@@ -43,7 +43,11 @@ export class StudentRepository {
               select: {
                 id: true,
                 name: true,
-                phone: true,
+                user: {
+                  select: {
+                    phone: true,
+                  },
+                },
               },
             },
           },
@@ -84,7 +88,11 @@ export class StudentRepository {
           select: {
             id: true,
             name: true,
-            phone: true,
+            user: {
+              select: {
+                phone: true,
+              },
+            },
           },
         },
         bus: {
@@ -219,14 +227,14 @@ export class StudentRepository {
   async getPaymentSummary(studentId: string) {
     const [total, paid, pending, failed] = await Promise.all([
       prisma.payment.count({ where: { studentId } }),
-      prisma.payment.count({ where: { studentId, status: 'PAID' } }),
+      prisma.payment.count({ where: { studentId, status: 'COMPLETED' } }),
       prisma.payment.count({ where: { studentId, status: 'PENDING' } }),
       prisma.payment.count({ where: { studentId, status: 'FAILED' } }),
     ]);
 
     // Get total paid amount
     const paidAmount = await prisma.payment.aggregate({
-      where: { studentId, status: 'PAID' },
+      where: { studentId, status: 'COMPLETED' },
       _sum: { amount: true },
     });
 

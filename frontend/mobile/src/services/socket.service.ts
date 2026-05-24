@@ -15,7 +15,7 @@ class SocketService {
   /**
    * Connect to socket server
    */
-  connect(token: string): void {
+  connect(token: string, onAuthFailure?: () => void): void {
     if (this.socket?.connected) {
       return;
     }
@@ -38,6 +38,9 @@ class SocketService {
 
     this.socket.on(SOCKET_EVENTS.CONNECT_ERROR, (error) => {
       console.error('Socket connection error:', error);
+      if (error.message === 'Invalid token' && onAuthFailure) {
+        onAuthFailure();
+      }
     });
 
     // Re-register listeners after reconnect
@@ -178,6 +181,34 @@ class SocketService {
   }
 
   // ==================== DRIVER EVENTS ====================
+
+  /**
+   * Join driver room
+   */
+  joinDriverRoom(): void {
+    this.emit('join:driver', {});
+  }
+
+  /**
+   * Leave driver room
+   */
+  leaveDriverRoom(): void {
+    this.emit('leave:driver', {});
+  }
+
+  /**
+   * Listen for new pickup requests
+   */
+  onPickupNewRequest(callback: (data: any) => void): void {
+    this.on('pickup:new-request', callback);
+  }
+
+  /**
+   * Listen for removed pickups
+   */
+  onPickupRemoved(callback: (data: any) => void): void {
+    this.on('pickup:removed', callback);
+  }
 
   /**
    * Send location update (for drivers)

@@ -1,18 +1,27 @@
 /**
  * User Routes - Module Structure
- * 
+ *
  * User management for all roles (student/driver/admin)
  */
 
 import { Router } from 'express';
+import { userController } from './user.controller';
+import { authenticate } from '../../middleware/auth.middleware';
 
 const router = Router();
 
-// Routes to be implemented:
-// GET    /api/v1/users              - List users (admin)
-// GET    /api/v1/users/:id          - Get user by ID
-// PUT    /api/v1/users/:id          - Update user profile
-// DELETE /api/v1/users/:id          - Delete user (admin)
-// GET    /api/v1/users/:id/profile  - Get full profile with role data
+/**
+ * @route   GET /api/v1/users/:id
+ * @desc    Get user by ID
+ * @access  Private
+ */
+router.get('/:id', authenticate, userController.getUser);
+
+/**
+ * @route   PATCH /api/v1/users/:id
+ * @desc    Update user profile
+ * @access  Private
+ */
+router.patch('/:id', authenticate, userController.updateProfile);
 
 export { router as userRoutes };

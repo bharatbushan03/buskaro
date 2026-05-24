@@ -33,6 +33,7 @@ import { socketService } from '../../services/socket.service';
 import { api } from '../../services/api.service';
 import { getCurrentLocation, requestLocationPermissions } from '../../services/location.service';
 import { PickupRequest } from '../../types';
+import { ENDPOINTS } from '../../constants/api';
 import { colors, spacing, typography } from '../../theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -127,7 +128,7 @@ export const PickupScreen: React.FC = () => {
    */
   const fetchActivePickup = async () => {
     try {
-      const response = await api.get('/api/students/active-pickup');
+      const response = await api.get<any>(ENDPOINTS.STUDENT.PICKUP.ACTIVE_PIN);
       if (response.data.data) {
         setPickup(response.data.data as PickupRequest);
       }
@@ -170,7 +171,7 @@ export const PickupScreen: React.FC = () => {
     try {
       setAddress('Loading address...');
       // Use Google's reverse geocoding or your backend
-      const response = await api.get(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
+      const response = await api.get<any>(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
       setAddress(response.data.data.address);
     } catch (error) {
       setAddress('Unknown location');
@@ -199,9 +200,9 @@ export const PickupScreen: React.FC = () => {
       setError(null);
 
       // API call to create pickup
-      const response = await api.post('/api/students/pin-location', {
-        lat: pinLocation.lat,
-        lng: pinLocation.lng,
+      const response = await api.post<any>(ENDPOINTS.STUDENT.PICKUP.REQUEST, {
+        latitude: pinLocation.lat,
+        longitude: pinLocation.lng,
         address: null, // Backend will reverse geocode
       });
 
@@ -250,7 +251,9 @@ export const PickupScreen: React.FC = () => {
             try {
               setCancelling(true);
               
-              await api.delete('/api/students/cancel-pin');
+              if (pickup?.id) {
+                await api.delete<any>(ENDPOINTS.STUDENT.PICKUP.CANCEL_PIN(pickup.id));
+              }
               
               // Emit socket event
               socketService.emitCancelPin(pickup?.id);

@@ -27,6 +27,11 @@ import { paymentRoutes } from './modules/payments/payment.routes';
 import { attendanceRoutes } from './modules/attendance/attendance.routes';
 import { notificationRoutes } from './modules/notifications/notification.routes';
 
+// Import role-based routes
+import adminRoutes from './modules/admin/admin.routes';
+import driverRoutes from './modules/drivers/driver.routes';
+import studentRoutes from './modules/students/student.routes';
+
 export const createApp = (): Application => {
   const app = express();
 
@@ -79,6 +84,109 @@ export const createApp = (): Application => {
   // API Routes - versioned
   const apiRouter = express.Router();
 
+  // Base API endpoint with full route map
+  apiRouter.get('/', (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'Welcome to BusKaro API v1',
+      version: '1.0.0',
+      endpoints: {
+        auth: {
+          '/register': 'POST - Register user',
+          '/login': 'POST - Login',
+          '/refresh': 'POST - Refresh token',
+          '/logout': 'POST - Logout',
+          '/logout-all': 'POST - Logout all devices',
+          '/change-password': 'POST - Change password',
+          '/me': 'GET - Current user profile',
+        },
+        users: {
+          '/:id': 'GET/PATCH - User profile management',
+        },
+        buses: {
+          '/': 'GET - List buses, POST - Create bus (Admin)',
+          '/:id': 'GET - Bus details, PUT - Update bus (Admin)',
+        },
+        routes: {
+          '/': 'GET - List routes, POST - Create route (Admin)',
+          '/:id': 'GET - Route details, PUT - Update route (Admin), DELETE - Delete route (Admin)',
+        },
+        pickups: {
+          '/students/pin-location': 'POST - Create pickup pin',
+          '/students/my-pin': 'GET - Get active pin',
+          '/students/cancel-pin/:id': 'DELETE - Cancel pin',
+          '/drivers/pickups': 'GET - Nearby pickups',
+          '/drivers/pickup/:id/accept': 'PATCH - Accept pickup',
+          '/drivers/pickup/:id/complete': 'PATCH - Complete pickup',
+          '/pickups/stats': 'GET - Pickup statistics (Admin)',
+        },
+        payments: {
+          '/my-fees': 'GET - My fees (Student)',
+          '/initiate': 'POST - Initiate payment (Student)',
+          '/verify': 'POST - Verify payment (Student)',
+          '/': 'GET - All payments (Admin)',
+          '/defaulters': 'GET - Payment defaulters (Admin)',
+          '/stats': 'GET - Payment stats (Admin)',
+          '/webhook': 'POST - Razorpay webhook (Public)',
+        },
+        attendance: {
+          '/students/today': 'GET - Today attendance',
+          '/students/history': 'GET - Attendance history',
+          '/students/mark': 'POST - Mark attendance (Manual)',
+          '/admin/': 'GET - All attendances (Admin)',
+          '/admin/stats': 'GET - Attendance stats (Admin)',
+          '/admin/manual': 'POST - Mark attendance (Admin)',
+        },
+        notifications: {
+          '/': 'GET - My notifications',
+          '/unread-count': 'GET - Unread count',
+          '/:id/read': 'PATCH - Mark as read',
+          '/mark-all-read': 'POST - Mark all read',
+        },
+        admin: {
+          '/students': 'GET - List students',
+          '/students/:id': 'GET - Student details',
+          '/drivers': 'GET - List drivers',
+          '/drivers/:id': 'GET - Driver details',
+          '/create-driver': 'POST - Create driver',
+          '/assign-bus': 'PATCH - Assign bus to driver',
+          '/assign-student': 'PATCH - Assign student to bus/route',
+          '/buses': 'GET - List buses, POST - Create bus',
+          '/buses/:id': 'GET - Bus details, PATCH - Update bus',
+          '/routes': 'GET - List routes, POST - Create route',
+          '/routes/:id': 'GET - Route details, PATCH - Update route',
+          '/live-buses': 'GET - Real-time monitoring',
+          '/active-trips': 'GET - Active trips',
+          '/join-monitoring': 'POST - Join real-time room',
+          '/analytics/overview': 'GET - System overview',
+          '/analytics/pickups': 'GET - Pickup analytics',
+          '/analytics/attendance': 'GET - Attendance analytics',
+          '/analytics/payments': 'GET - Payment analytics',
+        },
+        drivers: {
+          '/dashboard': 'GET - Driver dashboard',
+          '/trip/status': 'GET - Current trip status',
+          '/start-trip': 'POST - Start trip',
+          '/end-trip': 'POST - End trip',
+          '/route': 'GET - Navigation route',
+          '/pickups/nearby': 'GET - Nearby pickups',
+          '/pickups/:id/accept': 'PATCH - Accept pickup',
+          '/pickups/:id/complete': 'PATCH - Complete pickup',
+        },
+        students: {
+          '/dashboard': 'GET - Student dashboard',
+          '/track-bus': 'GET - Real-time tracking',
+          '/route': 'GET - Route details',
+          '/attendance': 'GET - Attendance summary',
+          '/payments': 'GET - Payment history',
+          '/pickup/active': 'GET - Active pickup status',
+          '/join-bus-tracking': 'POST - Join tracking room',
+        },
+      },
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // Register module routes
   apiRouter.use('/auth', authRoutes);
   apiRouter.use('/users', userRoutes);
@@ -88,6 +196,11 @@ export const createApp = (): Application => {
   apiRouter.use('/payments', paymentRoutes);
   apiRouter.use('/attendance', attendanceRoutes);
   apiRouter.use('/notifications', notificationRoutes);
+
+  // Register role-based routes
+  apiRouter.use('/admin', adminRoutes);
+  apiRouter.use('/drivers', driverRoutes);
+  apiRouter.use('/students', studentRoutes);
 
   // Mount API router
   app.use(config.apiPrefix, apiRouter);

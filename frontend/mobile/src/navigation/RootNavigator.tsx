@@ -32,9 +32,9 @@ export const RootNavigator: React.FC = () => {
           <Stack.Screen name="Auth" component={AuthNavigator} />
         ) : (
           // App Flow based on role
-          user?.role === UserRole.STUDENT ? (
+          user?.role === 'STUDENT' ? (
             <Stack.Screen name="StudentMain" component={StudentNavigator} />
-          ) : user?.role === UserRole.DRIVER ? (
+          ) : user?.role === 'DRIVER' ? (
             <Stack.Screen name="DriverMain" component={DriverNavigator} />
           ) : (
             <Stack.Screen name="Auth" component={AuthNavigator} />

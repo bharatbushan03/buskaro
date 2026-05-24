@@ -195,7 +195,7 @@ export class StudentService {
         driver: studentData.bus.driver ? {
           id: studentData.bus.driver.id,
           name: studentData.bus.driver.name,
-          phone: studentData.bus.driver.phone || undefined,
+          phone: studentData.bus.driver.user?.phone || undefined,
         } : undefined,
       } : null,
       route: studentData.route ? {
@@ -234,7 +234,7 @@ export class StudentService {
         driver: activePickup.driver ? {
           id: activePickup.driver.id,
           name: activePickup.driver.name,
-          phone: activePickup.driver.phone || undefined,
+          phone: activePickup.driver.user?.phone || undefined,
         } : undefined,
         bus: activePickup.bus ? {
           id: activePickup.bus.id,

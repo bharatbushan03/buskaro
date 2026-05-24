@@ -5,6 +5,12 @@
  */
 
 export const colors = {
+  // Base Colors
+  white: '#FFFFFF',
+  black: '#000000',
+  transparent: 'transparent',
+  border: '#E0E0E0',
+
   // Primary Colors
   primary: {
     50: '#E3F2FD',

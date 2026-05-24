@@ -3,6 +3,7 @@ node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+.expo/
 
 # Build output
 dist/
@@ -47,3 +48,7 @@ prisma/migrations/*/migration_lock.toml
 tmp/
 temp/
 *.tmp
+frontend/mobile/ts_errors.txt
+
+CLAUDE.md
+.claude

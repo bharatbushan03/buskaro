@@ -31,14 +31,13 @@ export class DriverRepository {
   /**
    * Get driver with assigned bus and route
    */
-  async getDriverWithAssignment(driverId: string) {
+  async getDriverWithAssignment(driverId: string): Promise<any> {
     return prisma.driver.findUnique({
       where: { id: driverId },
       include: {
         user: {
           select: {
             id: true,
-            name: true,
             email: true,
             phone: true,
             status: true,
@@ -99,8 +98,8 @@ export class DriverRepository {
             id: true,
             name: true,
             rollNumber: true,
-            grade: true,
-            section: true,
+            department: true,
+            semester: true,
             parentPhone: true,
           },
         },
@@ -126,8 +125,8 @@ export class DriverRepository {
         pr.*,
         s.name as student_name,
         s.roll_number,
-        s.grade,
-        s.section,
+        s.department,
+        s.semester,
         s.parent_phone,
         (6371 * acos(
           cos(radians(${latitude})) * cos(radians(pr.latitude)) *
@@ -247,8 +246,8 @@ export class DriverRepository {
             id: true,
             name: true,
             rollNumber: true,
-            grade: true,
-            section: true,
+            department: true,
+            semester: true,
             parentPhone: true,
             busId: true,
             routeId: true,
@@ -312,7 +311,6 @@ export class DriverRepository {
           include: {
             user: {
               select: {
-                name: true,
                 phone: true,
               },
             },

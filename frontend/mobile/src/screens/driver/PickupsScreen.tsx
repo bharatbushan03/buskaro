@@ -193,22 +193,22 @@ export const PickupsScreen: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return colors.warning;
-      case 'ACCEPTED': return colors.primary;
-      case 'COMPLETED': return colors.success;
+      case 'PENDING': return colors.warning.main;
+      case 'ACCEPTED': return colors.primary[500];
+      case 'COMPLETED': return colors.success.main;
       case 'CANCELLED':
-      case 'REJECTED': return colors.error;
+      case 'REJECTED': return colors.error.main;
       default: return colors.text.secondary;
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PENDING': return <AlertCircle size={16} color={colors.warning} />;
-      case 'ACCEPTED': return <Clock size={16} color={colors.primary} />;
-      case 'COMPLETED': return <CheckCircle size={16} color={colors.success} />;
+      case 'PENDING': return <AlertCircle size={16} color={colors.warning.main} />;
+      case 'ACCEPTED': return <Clock size={16} color={colors.primary[500]} />;
+      case 'COMPLETED': return <CheckCircle size={16} color={colors.success.main} />;
       case 'CANCELLED':
-      case 'REJECTED': return <XCircle size={16} color={colors.error} />;
+      case 'REJECTED': return <XCircle size={16} color={colors.error.main} />;
       default: return null;
     }
   };
@@ -218,7 +218,7 @@ export const PickupsScreen: React.FC = () => {
       <View style={styles.cardHeader}>
         <View style={styles.studentInfo}>
           <View style={styles.avatar}>
-            <User size={24} color={colors.primary} />
+            <User size={24} color={colors.primary[500]} />
           </View>
           <View>
             <Text style={styles.studentName}>{item.studentName}</Text>
@@ -267,15 +267,15 @@ export const PickupsScreen: React.FC = () => {
             style={[styles.actionButton, styles.rejectButton]}
             onPress={() => handleRejectPickup(item.id)}
           >
-            <XCircle size={18} color={colors.error} />
-            <Text style={[styles.actionText, { color: colors.error }]}>Reject</Text>
+            <XCircle size={18} color={colors.error.main} />
+            <Text style={[styles.actionText, { color: colors.error.main }]}>Reject</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.acceptButton]}
             onPress={() => handleAcceptPickup(item.id)}
           >
-            <CheckCircle size={18} color={colors.success} />
-            <Text style={[styles.actionText, { color: colors.success }]}>Accept</Text>
+            <CheckCircle size={18} color={colors.success.main} />
+            <Text style={[styles.actionText, { color: colors.success.main }]}>Accept</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -327,12 +327,12 @@ export const PickupsScreen: React.FC = () => {
       {/* Content */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
           <Text style={styles.loadingText}>Loading pickups...</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <AlertCircle size={48} color={colors.error} />
+          <AlertCircle size={48} color={colors.error.main} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchPickups}>
             <Text style={styles.retryButtonText}>Retry</Text>
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: colors.primary + '15',
+    backgroundColor: colors.primary[500] + '15',
   },
   tabText: {
     ...typography.body2,
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: colors.primary,
+    color: colors.primary[500],
     fontWeight: '600',
   },
   listContainer: {
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary + '15',
+    backgroundColor: colors.primary[500] + '15',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing[3],
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing[2],
   },
   notesContainer: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.background.paper,
     padding: spacing[2],
     borderRadius: 8,
     marginTop: spacing[2],
@@ -527,12 +527,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   rejectButton: {
-    borderColor: colors.error,
-    backgroundColor: colors.error + '10',
+    borderColor: colors.error.main,
+    backgroundColor: colors.error.main + '10',
   },
   acceptButton: {
-    borderColor: colors.success,
-    backgroundColor: colors.success + '10',
+    borderColor: colors.success.main,
+    backgroundColor: colors.success.main + '10',
   },
   actionText: {
     ...typography.body2,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.success,
+    backgroundColor: colors.success.main,
     paddingVertical: spacing[3],
     borderRadius: 8,
     marginTop: spacing[3],
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...typography.body1,
-    color: colors.error,
+    color: colors.error.main,
     textAlign: 'center',
     marginTop: spacing[3],
   },
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     marginTop: spacing[4],
     paddingHorizontal: spacing[6],
     paddingVertical: spacing[3],
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary[500],
     borderRadius: 8,
   },
   retryButtonText: {

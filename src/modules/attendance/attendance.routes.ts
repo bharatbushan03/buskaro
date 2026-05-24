@@ -69,6 +69,8 @@ adminRouter.get('/stats', attendanceController.getAttendanceStats);
  */
 adminRouter.post('/manual', attendanceController.markAttendanceAdmin);
 
-export { studentRouter as studentAttendanceRoutes };
-export { adminRouter as adminAttendanceRoutes };
-export { router as attendanceRoutes };
+  // Mount role-specific routers to the main module router
+  router.use('/students', studentRouter);
+  router.use('/admin', adminRouter);
+
+  export { router as attendanceRoutes };
