@@ -15,7 +15,7 @@ import { ProfileSettingsModal } from '../modals/ProfileSettingsModal';
 import { SystemSettingsModal } from '../modals/SystemSettingsModal';
 
 export const TopBar: React.FC = () => {
-  const { sidebarOpen, systemStats } = useAdminStore();
+  const { sidebarWidth, systemStats } = useAdminStore();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   
@@ -34,9 +34,8 @@ export const TopBar: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-40 transition-all duration-300 ${
-        sidebarOpen ? 'left-64' : 'left-20'
-      }`}
+      className="fixed top-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-40 transition-all duration-300"
+      style={{ left: sidebarWidth }}
     >
       {/* Left - Page Title */}
       <div>

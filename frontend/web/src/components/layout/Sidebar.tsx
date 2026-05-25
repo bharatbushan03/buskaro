@@ -11,8 +11,8 @@
  * - Analytics
  */
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -25,6 +25,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAdminStore } from '../../store/admin.store';
+import { SystemSettingsModal } from '../modals/SystemSettingsModal';
 
 interface MenuItem {
   path: string;
@@ -43,67 +44,104 @@ const menuItems: MenuItem[] = [
 ];
 
 export const Sidebar: React.FC = () => {
-  const { sidebarOpen, toggleSidebar } = useAdminStore();
+  const { sidebarOpen, toggleSidebar, sidebarWidth, setSidebarWidth } = useAdminStore();
+  const [isResizing, setIsResizing] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.reload();
+  };
+
+  const startResizing = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback((mouseMoveEvent: MouseEvent) => {
+    if (isResizing) {
+      const newWidth = Math.max(80, Math.min(mouseMoveEvent.clientX, 400));
+      setSidebarWidth(newWidth);
+    }
+  }, [isResizing, setSidebarWidth]);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResizing);
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [resize, stopResizing]);
 
   return (
+    <>
     <aside
-      className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 transition-all duration-300 z-50 ${
-        sidebarOpen ? 'w-64' : 'w-20'
-      }`}
+      className="fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-50 flex"
+      style={{ width: sidebarWidth, transition: isResizing ? 'none' : 'width 0.3s ease-in-out' }}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <Bus className="w-8 h-8 text-blue-600" />
-        {sidebarOpen && (
-          <span className="ml-3 text-xl font-bold text-gray-900">BusKaro</span>
-        )}
-      </div>
+      <div className="flex-1 overflow-hidden flex flex-col h-full relative">
+        {/* Logo */}
+        <div className="h-16 flex justify-start items-center px-6 border-b border-gray-200 shrink-0">
+          <Bus className="w-8 h-8 text-blue-600 shrink-0" />
+          {sidebarWidth > 150 && (
+            <span className="ml-3 text-xl font-bold text-gray-900 whitespace-nowrap">BusKaro</span>
+          )}
+        </div>
 
-      {/* Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        className="absolute -right-3 top-20 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-md hover:bg-blue-700 transition-colors"
-      >
-        {sidebarOpen ? '‹' : '›'}
-      </button>
+        {/* Navigation */}
+        <nav className="mt-6 px-3 flex-1 overflow-y-auto">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center px-3 py-3 mb-1 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`
+              }
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              {sidebarWidth > 150 && (
+                <span className="ml-3 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>
+              )}
+            </NavLink>
+          ))}
+        </nav>
 
-      {/* Navigation */}
-      <nav className="mt-6 px-3">
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center px-3 py-3 mb-1 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`
-            }
+        {/* Bottom Section */}
+        <div className="p-3 border-t border-gray-200 shrink-0">
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="w-full flex items-center px-3 py-3 mb-1 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
           >
-            <item.icon className="w-5 h-5 flex-shrink-0" />
-            {sidebarOpen && (
-              <span className="ml-3 text-sm font-medium">{item.label}</span>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Bottom Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-gray-200">
-        <NavLink
-          to="/settings"
-          className="flex items-center px-3 py-3 mb-1 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-        >
-          <Settings className="w-5 h-5 flex-shrink-0" />
-          {sidebarOpen && <span className="ml-3 text-sm font-medium">Settings</span>}
-        </NavLink>
-        <button className="w-full flex items-center px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {sidebarOpen && <span className="ml-3 text-sm font-medium">Logout</span>}
-        </button>
+            <Settings className="w-5 h-5 shrink-0" />
+            {sidebarWidth > 150 && <span className="ml-3 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">Settings</span>}
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            {sidebarWidth > 150 && <span className="ml-3 text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">Logout</span>}
+          </button>
+        </div>
       </div>
+
+      {/* Resize Handle */}
+      <div 
+        className="w-1.5 cursor-col-resize hover:bg-blue-400 bg-transparent h-full absolute right-0 top-0 transition-colors"
+        onMouseDown={startResizing}
+      />
     </aside>
+    {<SystemSettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />}
+    </>
   );
 };
 

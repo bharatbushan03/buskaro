@@ -14,7 +14,7 @@ import { TopBar } from './TopBar';
 import { useAdminStore } from '../../store/admin.store';
 
 export const AdminLayout: React.FC = () => {
-  const { sidebarOpen } = useAdminStore();
+  const { sidebarWidth } = useAdminStore();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,9 +26,8 @@ export const AdminLayout: React.FC = () => {
 
       {/* Main Content */}
       <main
-        className={`pt-16 min-h-screen transition-all duration-300 ${
-          sidebarOpen ? 'ml-64' : 'ml-20'
-        }`}
+        className="pt-16 min-h-screen transition-all duration-300"
+        style={{ marginLeft: sidebarWidth }}
       >
         <div className="p-6">
           <Outlet />

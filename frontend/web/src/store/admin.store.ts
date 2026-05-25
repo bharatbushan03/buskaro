@@ -109,6 +109,7 @@ interface AdminState {
   isLoading: boolean;
   error: string | null;
   sidebarOpen: boolean;
+  sidebarWidth: number;
   
   // Analytics
   pickupTrends: Array<{ date: string; count: number }>;
@@ -129,6 +130,7 @@ interface AdminState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   toggleSidebar: () => void;
+  setSidebarWidth: (width: number) => void;
   setPickupTrends: (data: Array<{ date: string; count: number }>) => void;
   setAttendanceData: (data: Array<{ date: string; rate: number }>) => void;
   setBusUtilization: (data: Array<{ busId: string; utilization: number }>) => void;
@@ -156,6 +158,7 @@ export const useAdminStore = create<AdminState>((set) => ({
   isLoading: false,
   error: null,
   sidebarOpen: true,
+  sidebarWidth: 256,
   pickupTrends: [],
   attendanceData: [],
   busUtilization: [],
@@ -184,7 +187,11 @@ export const useAdminStore = create<AdminState>((set) => ({
   setSelectedBusId: (selectedBusId) => set({ selectedBusId }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  toggleSidebar: () => set((state) => ({ 
+    sidebarOpen: !state.sidebarOpen,
+    sidebarWidth: !state.sidebarOpen ? 256 : 80 
+  })),
+  setSidebarWidth: (sidebarWidth) => set({ sidebarWidth, sidebarOpen: sidebarWidth > 100 }),
   
   setPickupTrends: (pickupTrends) => set({ pickupTrends }),
   setAttendanceData: (attendanceData) => set({ attendanceData }),
