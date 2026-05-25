@@ -124,7 +124,11 @@ export const TopBar: React.FC = () => {
               </button>
               <hr className="my-1 border-gray-100" />
               <button 
-                onClick={() => { setShowProfileMenu(false); alert('Logout logic pending...'); }}
+                onClick={() => { 
+                  setShowProfileMenu(false); 
+                  localStorage.removeItem('token');
+                  window.location.href = '/login'; 
+                }}
                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
               >
                 Logout
