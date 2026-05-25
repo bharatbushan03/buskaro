@@ -147,8 +147,8 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({
                   Attendance Summary
                 </h3>
                 <div className="space-y-2">
-                  {student.attendance.map((record, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  {student.attendance.map((record) => (
+                    <div key={record.month} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                       <span className="text-sm text-gray-600">{record.month}</span>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1 text-green-600">

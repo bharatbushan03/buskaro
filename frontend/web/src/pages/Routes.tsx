@@ -33,18 +33,18 @@ export const Routes: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
-    fetchRoutes();
+    fetchRoutes(statusFilter, searchTerm);
   }, [statusFilter]);
 
-  const fetchRoutes = async () => {
+  const fetchRoutes = async (status = statusFilter, search = searchTerm) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/v1/admin/routes`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          status: statusFilter !== 'ALL' ? statusFilter : undefined,
-          search: searchTerm || undefined,
+          status: status !== 'ALL' ? status : undefined,
+          search: search || undefined,
         },
       });
       
@@ -129,6 +129,7 @@ export const Routes: React.FC = () => {
             placeholder="Search routes by name, code, or location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && fetchRoutes()}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -143,7 +144,7 @@ export const Routes: React.FC = () => {
           <option value="UNDER_REVIEW">Under Review</option>
         </select>
         <button
-          onClick={fetchRoutes}
+          onClick={() => fetchRoutes()}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700"
         >
           <Filter className="w-4 h-4" />

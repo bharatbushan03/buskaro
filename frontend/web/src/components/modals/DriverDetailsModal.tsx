@@ -188,8 +188,8 @@ export const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({
                   Recent Activity
                 </h3>
                 <div className="space-y-2">
-                  {driver.recentActivity.slice(0, 5).map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                  {driver.recentActivity.slice(0, 5).map((activity) => (
+                    <div key={activity.timestamp} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                       <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
                       <div className="flex-1">
                         <p className="text-sm text-gray-900">{activity.description}</p>

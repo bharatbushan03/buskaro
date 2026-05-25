@@ -11,11 +11,17 @@
 import React, { useState } from 'react';
 import { Bell, User, ChevronDown, Circle } from 'lucide-react';
 import { useAdminStore } from '../../store/admin.store';
+import { ProfileSettingsModal } from '../modals/ProfileSettingsModal';
+import { SystemSettingsModal } from '../modals/SystemSettingsModal';
 
 export const TopBar: React.FC = () => {
   const { sidebarOpen, systemStats } = useAdminStore();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  
+  // Modals state
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSystemModalOpen, setIsSystemModalOpen] = useState(false);
 
   // Mock notifications
   const notifications = [
@@ -105,20 +111,39 @@ export const TopBar: React.FC = () => {
           {/* Profile Dropdown */}
           {showProfileMenu && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-              <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
+              <button 
+                onClick={() => { setShowProfileMenu(false); setIsProfileModalOpen(true); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
                 Profile Settings
               </button>
-              <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
+              <button 
+                onClick={() => { setShowProfileMenu(false); setIsSystemModalOpen(true); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
                 System Settings
               </button>
               <hr className="my-1 border-gray-100" />
-              <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50">
+              <button 
+                onClick={() => { setShowProfileMenu(false); alert('Logout logic pending...'); }}
+                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+              >
                 Logout
               </button>
             </div>
           )}
         </div>
       </div>
+      
+      {/* Settings Modals */}
+      <ProfileSettingsModal 
+        isOpen={isProfileModalOpen} 
+        onClose={() => setIsProfileModalOpen(false)} 
+      />
+      <SystemSettingsModal 
+        isOpen={isSystemModalOpen} 
+        onClose={() => setIsSystemModalOpen(false)} 
+      />
     </header>
   );
 };

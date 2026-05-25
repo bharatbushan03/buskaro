@@ -28,19 +28,20 @@ export const Payments: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
-    fetchPayments();
-  }, [statusFilter, typeFilter]);
+    fetchPayments(statusFilter, typeFilter, selectedMonth, searchTerm);
+  }, [statusFilter, typeFilter, selectedMonth]);
 
-  const fetchPayments = async () => {
+  const fetchPayments = async (status = statusFilter, type = typeFilter, month = selectedMonth, search = searchTerm) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/v1/admin/payments`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          status: statusFilter !== 'ALL' ? statusFilter : undefined,
-          type: typeFilter !== 'ALL' ? typeFilter : undefined,
-          month: selectedMonth,
+          status: status !== 'ALL' ? status : undefined,
+          type: type !== 'ALL' ? type : undefined,
+          month: month,
+          search: search || undefined,
         },
       });
       
@@ -130,6 +131,7 @@ export const Payments: React.FC = () => {
             placeholder="Search by student name or payment ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && fetchPayments(statusFilter, typeFilter, selectedMonth, searchTerm)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>

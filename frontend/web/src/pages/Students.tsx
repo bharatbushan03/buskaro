@@ -28,20 +28,20 @@ export const Students: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
-    fetchStudents();
+    fetchStudents(currentPage, statusFilter, searchTerm);
   }, [currentPage, statusFilter]);
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (page = currentPage, status = statusFilter, search = searchTerm) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/v1/admin/students`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          page: currentPage,
+          page,
           limit: 10,
-          status: statusFilter !== 'ALL' ? statusFilter : undefined,
-          search: searchTerm || undefined,
+          status: status !== 'ALL' ? status : undefined,
+          search: search || undefined,
         },
       });
       
@@ -61,8 +61,11 @@ export const Students: React.FC = () => {
   };
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    fetchStudents();
+    if (currentPage === 1) {
+      fetchStudents(1, statusFilter, searchTerm);
+    } else {
+      setCurrentPage(1);
+    }
   };
 
   const toggleSelectAll = () => {

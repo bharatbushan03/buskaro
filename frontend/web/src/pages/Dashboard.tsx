@@ -8,15 +8,18 @@
  * - Quick actions
  */
 
-import React, { useEffect } from 'react';
-import { Users, Bus, Route, CreditCard, Activity, Plus } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Bus, Route, CreditCard, Activity, Plus, FileText, Bell, ChevronDown, UserPlus } from 'lucide-react';
 import { StatCard } from '../components/common/StatCard';
 import { LiveMap } from '../components/dashboard/LiveMap';
 import { ActivityFeed } from '../components/dashboard/ActivityFeed';
 import { useAdminStore } from '../store/admin.store';
+import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { systemStats, setSystemStats } = useAdminStore();
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const navigate = useNavigate();
 
   // Load mock stats on mount
   useEffect(() => {
@@ -40,10 +43,57 @@ export const Dashboard: React.FC = () => {
             Welcome back! Here's what's happening today.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          <Plus className="w-4 h-4" />
-          <span>Quick Action</span>
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowQuickActions(!showQuickActions)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Quick Action</span>
+            <ChevronDown className="w-4 h-4 ml-1" />
+          </button>
+          
+          {showQuickActions && (
+            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              <button 
+                onClick={() => { setShowQuickActions(false); navigate('/admin/students'); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add New Student
+              </button>
+              <button 
+                onClick={() => { setShowQuickActions(false); navigate('/admin/drivers'); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add New Driver
+              </button>
+              <button 
+                onClick={() => { setShowQuickActions(false); navigate('/buses'); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <Bus className="w-4 h-4" />
+                Assign Bus
+              </button>
+              <hr className="my-1 border-gray-100" />
+              <button 
+                onClick={() => { setShowQuickActions(false); alert('Send notification modal pending...'); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <Bell className="w-4 h-4" />
+                Send Notification
+              </button>
+              <button 
+                onClick={() => { setShowQuickActions(false); navigate('/analytics'); }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Generate Report
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats Grid */}

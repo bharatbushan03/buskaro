@@ -31,20 +31,20 @@ export const Drivers: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
-    fetchDrivers();
+    fetchDrivers(currentPage, statusFilter, searchTerm);
   }, [currentPage, statusFilter]);
 
-  const fetchDrivers = async () => {
+  const fetchDrivers = async (page = currentPage, status = statusFilter, search = searchTerm) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/v1/admin/drivers`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-          page: currentPage,
+          page,
           limit: 10,
-          status: statusFilter !== 'ALL' ? statusFilter : undefined,
-          search: searchTerm || undefined,
+          status: status !== 'ALL' ? status : undefined,
+          search: search || undefined,
         },
       });
       
@@ -63,8 +63,11 @@ export const Drivers: React.FC = () => {
   };
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    fetchDrivers();
+    if (currentPage === 1) {
+      fetchDrivers(1, statusFilter, searchTerm);
+    } else {
+      setCurrentPage(1);
+    }
   };
 
   const toggleSelectAll = () => {

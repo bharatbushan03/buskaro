@@ -179,8 +179,8 @@ export const BusDetailsModal: React.FC<BusDetailsModalProps> = ({
                   Location History
                 </h3>
                 <div className="space-y-2">
-                  {bus.locationHistory.slice(0, 5).map((loc, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                  {bus.locationHistory.slice(0, 5).map((loc) => (
+                    <div key={loc.timestamp} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                       <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5" />
                       <div className="flex-1">
                         <p className="text-sm text-gray-900">{loc.address || 'Unknown location'}</p>
