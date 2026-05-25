@@ -65,7 +65,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
       if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
       if (filters.routeId && filters.routeId !== 'ALL') params.append('routeId', filters.routeId);
 
-      const response = await fetch(`${API_URL}/api/admin/buses?${params.toString()}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
     setRoutesLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/admin/routes?active=true`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/routes?active=true`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
   const openBusDetails = useCallback(async (busId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/admin/buses/${busId}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses/${busId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -260,7 +260,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/admin/buses`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -302,7 +302,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/admin/buses/${busId}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses/${busId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -341,7 +341,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/admin/buses/${busId}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses/${busId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -364,7 +364,7 @@ export const useBuses = (initialFilters: BusesFilters = {}): UseBusesReturn => {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/admin/buses/${busId}/status`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses/${busId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

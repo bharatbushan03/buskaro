@@ -64,7 +64,7 @@ export const useDrivers = (initialFilters: DriversFilters = {}): UseDriversRetur
         params.append('assigned', filters.assigned.toString());
       }
 
-      const response = await fetch(`${API_URL}/api/admin/drivers?${params.toString()}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/drivers?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ export const useDrivers = (initialFilters: DriversFilters = {}): UseDriversRetur
     setBusesLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/admin/buses?available=true`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/buses?available=true`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ export const useDrivers = (initialFilters: DriversFilters = {}): UseDriversRetur
   const openDriverDetails = useCallback(async (driverId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/admin/drivers/${driverId}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/drivers/${driverId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export const useDrivers = (initialFilters: DriversFilters = {}): UseDriversRetur
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/admin/assign-bus`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/assign-bus`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -293,7 +293,7 @@ export const useDrivers = (initialFilters: DriversFilters = {}): UseDriversRetur
       const token = localStorage.getItem('token');
       const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
       
-      const response = await fetch(`${API_URL}/api/admin/drivers/${driverId}/status`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/drivers/${driverId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -52,7 +52,7 @@ export const useStudents = (initialFilters: StudentsFilters = {}): UseStudentsRe
       if (filters.feeStatus && filters.feeStatus !== 'ALL') params.append('feeStatus', filters.feeStatus);
       if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
 
-      const response = await fetch(`${API_URL}/api/admin/students?${params.toString()}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/students?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ export const useStudents = (initialFilters: StudentsFilters = {}): UseStudentsRe
   const openStudentDetails = useCallback(async (studentId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/admin/students/${studentId}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/students/${studentId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -182,7 +182,7 @@ export const useStudents = (initialFilters: StudentsFilters = {}): UseStudentsRe
       const token = localStorage.getItem('token');
       const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
       
-      const response = await fetch(`${API_URL}/api/admin/students/${studentId}/status`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/students/${studentId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -215,7 +215,7 @@ export const useStudents = (initialFilters: StudentsFilters = {}): UseStudentsRe
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${API_URL}/api/admin/students/${studentId}/route`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/students/${studentId}/route`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

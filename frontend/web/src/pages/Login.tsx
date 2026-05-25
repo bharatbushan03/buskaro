@@ -18,16 +18,17 @@ export const Login: React.FC = () => {
     setError('');
 
     try {
-      // Simulate API call if backend isn't ready
-      // const response = await axios.post(`${API_URL}/api/v1/auth/login`, { email, password });
-      // localStorage.setItem('token', response.data.token);
+      // Connect to real backend for authentication
+      const response = await axios.post(`${API_URL}/api/v1/auth/login`, { email, password });
       
-      // Temporary stub for mock login flow
-      if (email === 'admin@buskaro.com' && password === 'admin123') {
-        localStorage.setItem('token', 'mock_admin_token_123');
+      if (response.data?.data?.accessToken) {
+        localStorage.setItem('token', response.data.data.accessToken);
+        if (response.data.data.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        }
         navigate('/');
       } else {
-        setError('Invalid credentials. Please use admin@buskaro.com / admin123');
+        setError('Invalid response from server');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login');
